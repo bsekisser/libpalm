@@ -12,16 +12,22 @@
 
 /* **** */
 
-MemPtr MemHandleLock(MemHandle h)
+Err MemHandleUnlock(MemHandle h)
 {
+	if(!h)
+		return(memErrInvalidParam);
+
 	MemPtr p = *(void**)h;
 
 	chunk_p chunk = (chunk_p)((void*)p - (void*)MEMBER_OF(chunk_p, p));
 
-	if(chunk->lockCount < 15)
+	if(!chunk->isHandle)
+		return(memErrInvalidParam);
+
+	if(chunk->lockCount)
 		chunk->lockCount++;
 
-	chunk->isLocked = true;
+	chunk->isLocked = (0 != chunk->lockCount);
 
-	return(p);
+	return(0);
 }
