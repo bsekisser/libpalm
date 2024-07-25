@@ -17,9 +17,7 @@ Err MemHandleUnlock(MemHandle h)
 	if(!h)
 		return(memErrInvalidParam);
 
-	MemPtr p = *(void**)h;
-
-	chunk_p chunk = (chunk_p)((void*)p - (void*)MEMBER_OF(chunk_p, p));
+	chunk_p chunk = __MemHandle2Chunk(h);
 
 	if(!chunk->isHandle)
 		return(memErrInvalidParam);

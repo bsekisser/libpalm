@@ -29,7 +29,7 @@ Err DmSetDatabaseInfo(const UInt16 cardNo, const LocalID dbID,
 	UInt32 *const typeP,
 	UInt32 *const creatorP)
 {
-	dmdb_p db = dmdbhdr_for_card_local(cardNo, dbID);
+	dmdb_p db = __DmOpenDatabase(cardNo, dbID);
 
 	PSET(appInfoIDP, db->appInfoID);
 	PSET(attributesP, db->attributes);
@@ -39,8 +39,12 @@ Err DmSetDatabaseInfo(const UInt16 cardNo, const LocalID dbID,
 	PSET(modDateP, db->modDate);
 	PSET(modNumP, db->modNum);
 
-	if(nameP)
-		strncpy(db->name, nameP, sizeof(db->name) - 1);
+	if(nameP) {
+		const unsigned maxLen = sizeof(db->name) - 1;
+
+		strncpy(db->name, nameP, maxLen);
+		db->name[maxLen] = 0;
+	}
 
 	PSET(sortInfoIDP, db->sortInfoID);
 	PSET(typeP, db->type);

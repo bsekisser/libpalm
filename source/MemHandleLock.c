@@ -14,9 +14,9 @@
 
 MemPtr MemHandleLock(MemHandle h)
 {
-	MemPtr p = *(void**)h;
+	void *const p = *(void**)h;
 
-	chunk_p chunk = (chunk_p)((void*)p - (void*)MEMBER_OF(chunk_p, p));
+	chunk_p chunk = __MemHandle2Chunk(h);
 
 	if(chunk->lockCount < 15)
 		chunk->lockCount++;

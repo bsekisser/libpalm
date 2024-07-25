@@ -15,3 +15,4 @@ void CtlDrawControl(ControlType* controlP)
 
 	controlP->attr.visible = true;
 }
+

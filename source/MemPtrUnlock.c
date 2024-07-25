@@ -14,9 +14,7 @@
 
 Err MemPtrUnlock(MemPtr p)
 {
-	LOG("TODO"); return(0);
-
-	chunk_p chunk = (chunk_p)((void*)p - (void*)MEMBER_OF(chunk_p, p));
+	chunk_p chunk = (chunk_p)((void*)p - (void*)OFFSET_OF(chunk_p, p));
 
 	if(chunk->lockCount)
 		chunk->lockCount--;

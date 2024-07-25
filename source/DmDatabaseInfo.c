@@ -29,7 +29,7 @@ Err DmDatabaseInfo(const UInt16 cardNo, const LocalID dbID,
 	UInt32 *const typeP,
 	UInt32 *const creatorP)
 {
-	dmdb_p db = dmdbhdr_for_card_local(cardNo, dbID);
+	dmdb_p db = __DmOpenDatabase(cardNo, dbID);
 
 	PGET(appInfoIDP, db->appInfoID);
 	PGET(attributesP, db->attributes);

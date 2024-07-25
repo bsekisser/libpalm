@@ -22,3 +22,5 @@ typedef struct chunk_t {
 //
 	char p[];
 }chunk_t;
+
+chunk_p __MemHandle2Chunk(MemHandle);

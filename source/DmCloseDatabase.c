@@ -2,8 +2,12 @@
 
 /* **** */
 
+#include "dm_t.h"
+
+/* **** */
+
 #include "git/libbse/include/log.h"
-#include "git/libbse/include/unused.h"
+//#include "git/libbse/include/unused.h"
 
 /* **** */
 
@@ -11,8 +15,8 @@ Err DmCloseDatabase(DmOpenRef dbP)
 {
 	LOG("TODO"); return(0);
 
-//	if(recycleable)
-//		DmDeleteDatabase(cardNo, localID);
+	dmdb_p db = dbP;
 
-	UNUSED(dbP);
+	if(db->attributes & dmHdrAttrRecyclable)
+		DmDeleteDatabase(db->cardNo, db->dbID);
 }
