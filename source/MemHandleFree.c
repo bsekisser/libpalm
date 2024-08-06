@@ -1,29 +1,21 @@
-#include "MemoryMgr.h"
+#include "xMemoryMgr.h"
 
 /* **** */
 
-#include "chunk_t.h"
-#include "utility.h"
-
-/* **** */
-
-#include "libbse/include/log.h"
-#include "libbse/include/page.h"
-
-/* **** */
-
-#include <stdlib.h>
+#include <string.h>
 
 /* **** */
 
 Err MemHandleFree(MemHandle h)
 {
-	chunk_p chunk = __MemHandle2Chunk(h);
+	master_pointer_p mp = master_pointer_find_handle(h, 0);
+	if(!mp)
+		return(memErrInvalidParam);
 
-	if(!chunk->isHandle)
-		return(-1);
+	if(mp->alloc)
+		free(mp->data);
 
-	free(chunk);
+	memset(mp, 0, sizeof(master_pointer_t));
 
 	return(errNone);
 }

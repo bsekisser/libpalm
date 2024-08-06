@@ -20,4 +20,6 @@ Err MemPtrUnlock(MemPtr p)
 		chunk->lockCount--;
 
 	chunk->isLocked = (0 != chunk->lockCount);
+
+	return(errNone);
 }

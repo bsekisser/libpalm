@@ -7,9 +7,14 @@
 
 /* **** */
 
+#include <stdlib.h>
+
+/* **** */
+
 void EvtGetEvent(EventType* event, Int32 timeout)
 {
 	LOG("TODO");
+	LOG_ACTION(exit(-1));
 
 	UNUSED(event, timeout);
 }

@@ -1,8 +1,7 @@
-#include "MemoryMgr.h"
+#include "xMemoryMgr.h"
 
 /* **** */
 
-#include "chunk_t.h"
 #include "utility.h"
 
 /* **** */
@@ -14,14 +13,11 @@
 
 MemPtr MemHandleLock(MemHandle h)
 {
-	void *const p = *(void**)h;
+	master_pointer_p mp = master_pointer_find_handle(h, 0);
+	if(!mp)
+		return(0);
 
-	chunk_p chunk = __MemHandle2Chunk(h);
+	mp->locked = true;
 
-	if(chunk->lockCount < 15)
-		chunk->lockCount++;
-
-	chunk->isLocked = true;
-
-	return(p);
+	return(mp->data);
 }

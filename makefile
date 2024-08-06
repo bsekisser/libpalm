@@ -41,4 +41,7 @@ VPATH = source
 all: $(TARGET_LIB)
 
 include git/libbse/makefile.setup
+
+$(OBJ_TARGET_LIB): git/libbse/libbse.so
+
 include git/libbse/makefile.build

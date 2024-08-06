@@ -1,8 +1,15 @@
-#include "SystemMgr.h"
+#include "libpalm.h"
 
 /* **** */
 
+#include "SystemMgr.h"
+#include "SysUtils.h"
+
+/* **** */
+
+#include "libbse/include/bin.h"
 #include "libbse/include/log.h"
+#include "libbse/include/unused.h"
 
 /* **** */
 
@@ -10,58 +17,28 @@
 
 /* **** */
 
-#define ERR_ESAC(_esac) { _esac, #_esac }
-
-typedef struct palm_err_t* palm_err_p;
-typedef struct palm_err_t {
-	Err erc;
-	const char* string;
-}palm_err_t;
-
-palm_err_t palm_err[] = {
-	ERR_ESAC(sysErrRomIncompatible),
-	{ 0, 0 },
-};
-
-static Boolean log_palm_err(Err erc)
-{
-	LOG_START("rval: 0x%08x", erc);
-
-	palm_err_p pep = palm_err;
-
-	while(pep->erc) {
-		if(erc == pep->erc)
-			break;
-
-		pep++;
-	}
-
-	if(erc == pep->erc) {
-		LOG_END(" -- %s", pep->string);
-		return(true);
-	} else
-		LOG_END();
-
-	return(false);
-}
-
 int main(int argc, char** argv)
 {
 	xcb_connection_t* xc = xcb_connect(0, 0);
 
 	/* **** */
 
+	bin_halloc(&libpalm->rsrc);
+
 	const UInt16 cmd = sysAppLaunchCmdNormalLaunch;
-	void *const cmdPBP;
-	const UInt16 launchFlags;
+	void *const cmdPBP = 0;
+	const UInt16 launchFlags = 0;
 
 	const UInt32 rval = PilotMain(cmd, cmdPBP, launchFlags);
 
-	log_palm_err(rval);
+	char error_string[256];
+	LOG("%s", SysErrString(rval, error_string, sizeof(error_string)));
 
 	/* **** */
 
 	xcb_disconnect(xc);
 
 	return(0);
+
+	UNUSED(argc, argv);
 }
