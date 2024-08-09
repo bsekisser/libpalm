@@ -18,6 +18,7 @@ MemPtr MemHandleLock(MemHandle h)
 		return(0);
 
 	mp->locked = true;
+	mp->lockCount++;
 
 	return(mp->data);
 }

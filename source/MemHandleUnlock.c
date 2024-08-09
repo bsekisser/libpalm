@@ -1,4 +1,4 @@
-#include "MemoryMgr.h"
+#include "xMemoryMgr.h"
 
 /* **** */
 
@@ -14,18 +14,14 @@
 
 Err MemHandleUnlock(MemHandle h)
 {
-	if(!h)
+	master_pointer_p mp = master_pointer_find_handle(h, 0);
+	if(!mp)
 		return(memErrInvalidParam);
 
-	chunk_p chunk = __MemHandle2Chunk(h);
+	if(mp->lockCount)
+		mp->lockCount--;
 
-	if(!chunk->isHandle)
-		return(memErrInvalidParam);
+	mp->locked = (0 != mp->lockCount);
 
-	if(chunk->lockCount)
-		chunk->lockCount++;
-
-	chunk->isLocked = (0 != chunk->lockCount);
-
-	return(0);
+	return(errNone);
 }

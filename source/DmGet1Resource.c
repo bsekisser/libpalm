@@ -17,5 +17,5 @@
 
 /* **** */
 
-MemHandle DmGetResource(DmResType type, DmResID resID)
-{ return((MemHandle)resource_get(type, resID)); }
+MemHandle DmGet1Resource(DmResType type, DmResID resID)
+{ return((MemHandle)resource_get1(libpalm->current_resource, type, resID)); }

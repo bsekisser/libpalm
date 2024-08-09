@@ -27,6 +27,7 @@ typedef struct master_pointer_t {
 	};
 //
 	size_t alloc;
+	unsigned lockCount;
 	size_t size;
 }master_pointer_t;
 

@@ -4,6 +4,7 @@
 
 #include "SystemMgr.h"
 #include "SysUtils.h"
+#include "xResourceMgr.h"
 
 /* **** */
 
@@ -17,13 +18,27 @@
 
 /* **** */
 
+libpalm_p libpalm;
+
 int main(int argc, char** argv)
 {
+	libpalm_t t_libpalm; libpalm = &t_libpalm;
+
 	xcb_connection_t* xc = xcb_connect(0, 0);
 
 	/* **** */
 
-	bin_halloc(&libpalm->rsrc);
+//	if(resource_open("MerchantBW.rsrc"))
+//		return(-1);
+
+//	if(resource_open("MerchantGray.rsrc"))
+//		return(-1);
+
+	if(resource_open("Merchant.rsrc"))
+		return(-1);
+
+	if(resource_open("MerchantColor.rsrc"))
+		return(-1);
 
 	const UInt16 cmd = sysAppLaunchCmdNormalLaunch;
 	void *const cmdPBP = 0;
