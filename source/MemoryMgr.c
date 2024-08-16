@@ -17,12 +17,13 @@
 
 master_pointer_p master_pointer_calloc(size_t size)
 {
-	master_pointer_block_p mpb = &libpalm->master_pointer_block;
+	master_pointer_block_p mpb = &master_pointer_block;
+	unsigned count = 0;
 
 	while(mpb) {
 if(0)	LOG("mpb: 0x%016" PRIxPTR, (uintptr_t)mpb);
 
-		for(unsigned x = 0; x < __master_pointer_entries__; x++) {
+		for(unsigned x = 0; x < __master_pointer_block_entries__; x++) {
 			const master_pointer_p mp = &mpb->entry[x];
 
 if(0)		LOG("mp: 0x%016" PRIxPTR, (uintptr_t)mp);
@@ -42,6 +43,8 @@ if(0) {
 					return(mp);
 				}
 			}
+
+			count++;
 		}
 
 		const master_pointer_block_p last_mpb = mpb;
@@ -50,7 +53,7 @@ if(0) {
 		if(!mpb) {
 			mpb = calloc(1, sizeof(master_pointer_block_t));
 
-if(1)		LOG("calloc mpb: 0x%016" PRIxPTR, (uintptr_t)mpb);
+if(1)		LOG("calloc_mpb(%u): 0x%016" PRIxPTR, count, (uintptr_t)mpb);
 
 			if(mpb)
 				last_mpb->next = mpb;
@@ -62,12 +65,12 @@ if(1)		LOG("calloc mpb: 0x%016" PRIxPTR, (uintptr_t)mpb);
 
 master_pointer_p master_pointer_find_handle(MemHandle const h, master_pointer_block_h h2mpb)
 {
-	master_pointer_block_p mpb = &libpalm->master_pointer_block;
+	master_pointer_block_p mpb = &master_pointer_block;
 
 	for(; mpb; mpb = mpb->next) {
 if(0)	LOG("mpb: 0x%016" PRIxPTR, (uintptr_t)mpb);
 
-		for(unsigned x = 0; x < __master_pointer_entries__; x++) {
+		for(unsigned x = 0; x < __master_pointer_block_entries__; x++) {
 			const master_pointer_p mp = &mpb->entry[x];
 
 if(0)		LOG("mp: 0x%016" PRIxPTR, (uintptr_t)mp);

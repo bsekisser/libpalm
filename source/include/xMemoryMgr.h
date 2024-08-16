@@ -31,20 +31,20 @@ typedef struct master_pointer_t {
 	size_t size;
 }master_pointer_t;
 
-#define __master_pointer_entries__ 64
+#define __master_pointer_block_entries__ 64
 
 typedef struct master_pointer_block_t {
-	master_pointer_t entry[__master_pointer_entries__];
+	master_pointer_t entry[__master_pointer_block_entries__];
 	master_pointer_block_p	next;
 }master_pointer_block_t;
 
 /* **** */
 
-#include "libpalm.h"
+#include "MemoryMgr.h"
 
 /* **** */
 
-#include "MemoryMgr.h"
+extern master_pointer_block_t master_pointer_block;
 
 /* **** */
 

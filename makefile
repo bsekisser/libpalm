@@ -2,6 +2,7 @@ CFLAGS = -O1
 CFLAGS += -fPIC
 CFLAGS += -D__LIB_PALM_SDK__
 CFLAGS += -DEMULATION_LEVEL=EMULATION_UNIX
+CFLAGS += -fvisibility=hidden
 #CFLAGS += -nostdinc
 #CFLAGS += -Wno-char-subscripts
 #CFLAGS += -Wno-misleading-indentation

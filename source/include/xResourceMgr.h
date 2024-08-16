@@ -2,6 +2,10 @@
 
 /* **** */
 
+#include "config.h"
+
+/* **** */
+
 typedef struct resource_data_t** resource_data_h;
 typedef struct resource_data_t* resource_data_p;
 
@@ -23,26 +27,26 @@ typedef struct resource_map_t* resource_map_p;
 /* **** */
 
 typedef struct resource_data_t {
-	size_t size; // 4
+	uint32_t size;
 //
 	void* data;
 }resource_data_t;
 
 typedef struct resource_header_t {
-	off_t data_offset; // 4
-	off_t map_offset; // 4
-	size_t data_length; // 4
-	size_t map_length; // 4
+	uint32_t data_offset;
+	uint32_t map_offset;
+	uint32_t data_length;
+	uint32_t map_length;
 }resource_header_t;
 
 typedef struct resource_map_t {
-	resource_header_t header_copy;
+	resource_header_t header;
 	resource_map_h next; // 4
 	void* file_ref; // 2
 //
 	uint16_t attributes;
-	off_t type_list_offset; // 2
-	off_t name_list_offset; // 2
+	uint16_t type_list_offset;
+	uint16_t name_list_offset;
 	uint16_t num_types;
 /*
  * resource_type_entry_t type_list[];
@@ -52,7 +56,7 @@ typedef struct resource_map_t {
 }resource_map_t;
 
 typedef struct resource_name_entry_t {
-	size_t length; // 1
+	uint8_t length;
 //
 	char* name;
 }resource_name_entry_t;
@@ -60,9 +64,9 @@ typedef struct resource_name_entry_t {
 typedef struct resource_reference_entry_t* resource_reference_entry_p;
 typedef struct resource_reference_entry_t {
 	uint16_t id;
-	off_t name_offset; // 2
+	uint16_t name_offset;
 	uint8_t attributes;
-	off_t data_offset; // 3
+	uint32_t data_offset; // 3
 //
 	MemHandle h; // reserved
 }resource_reference_entry_t;
@@ -71,8 +75,12 @@ typedef struct resource_type_entry_t* resource_type_entry_p;
 typedef struct resource_type_entry_t {
 	uint32_t type;
 	uint16_t count;
-	off_t ref_list_offset; // 2?
+	uint16_t ref_list_offset;
 }resource_type_entry_t;
+
+/* **** */
+
+extern resource_map_h current_resource;
 
 /* **** */
 

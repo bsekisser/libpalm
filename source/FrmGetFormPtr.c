@@ -1,15 +1,17 @@
-#include "Form.h"
+#include "xForm.h"
 
 /* **** */
 
-#include "libbse/include/log.h"
-#include "libbse/include/unused.h"
-
-/* **** */
-
-FormType* FrmGetFormPtr(UInt16 formID)
+FormType* FrmGetFormPtr(const UInt16 formID)
 {
-	LOG("TODO"); return(0);
+	FormPtr formP = FrmGetFirstForm();
 
-	UNUSED(formID);
+	while(formP) {
+		if(formID == formP->formId)
+			return(formP);
+
+		formP = FrmGetNextForm(formP);
+	}
+
+	return(0);
 }

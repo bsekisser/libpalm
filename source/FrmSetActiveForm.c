@@ -1,4 +1,5 @@
 #include "Form.h"
+#include "Window.h"
 
 /* **** */
 
@@ -7,9 +8,5 @@
 
 /* **** */
 
-extern FormType* gActiveForm;
-
-/* **** */
-
 void FrmSetActiveForm(FormType *const formP)
-{ gActiveForm = formP; }
+{ WinSetActiveWindow((WinPtr)formP); }

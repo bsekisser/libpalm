@@ -1,9 +1,8 @@
-#include "libpalm.h"
+#include "config.h"
 
 /* **** */
 
 #include "SystemMgr.h"
-#include "SysUtils.h"
 #include "xResourceMgr.h"
 
 /* **** */
@@ -18,12 +17,8 @@
 
 /* **** */
 
-libpalm_p libpalm;
-
 int main(int argc, char** argv)
 {
-	libpalm_t t_libpalm; libpalm = &t_libpalm;
-
 	xcb_connection_t* xc = xcb_connect(0, 0);
 
 	/* **** */

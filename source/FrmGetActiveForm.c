@@ -1,4 +1,5 @@
-#include "Form.h"
+#include "xForm.h"
+#include "xWindow.h"
 
 /* **** */
 
@@ -8,4 +9,8 @@
 /* **** */
 
 FormType* FrmGetActiveForm(void)
-{ LOG("TODO"); return(0); }
+{
+	WinPtr windowP = WinGetActiveWindow();
+
+	return(windowP->windowFlags.dialog ? (FormPtr)windowP : 0);
+}

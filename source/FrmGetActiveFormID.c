@@ -1,4 +1,4 @@
-#include "Form.h"
+#include "xForm.h"
 
 /* **** */
 
@@ -7,13 +7,11 @@
 
 /* **** */
 
-extern FormType* gActiveForm;
-
-/* **** */
-
 UInt16 FrmGetActiveFormID(void)
 {
-	const UInt16 formID = gActiveForm ? gActiveForm->formId : 0;
+	FormPtr formP = FrmGetActiveForm();
+
+	const UInt16 formID = formP ? formP->formId : 0;
 
 	return(formID);
 }

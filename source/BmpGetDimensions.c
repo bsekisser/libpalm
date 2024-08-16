@@ -1,4 +1,4 @@
-#include "Bitmap.h"
+#include "xBitmap.h"
 
 /* **** */
 
