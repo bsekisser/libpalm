@@ -1,32 +1,48 @@
-#include git/libbse/makefile.setup
-include git/libbse/makefile.setup.so
+CFLAGS = -O1
+CFLAGS += -fPIC
+CFLAGS += -D__LIB_PALM_SDK__
+CFLAGS += -DEMULATION_LEVEL=EMULATION_UNIX
+CFLAGS += -fvisibility=hidden
+#CFLAGS += -nostdinc
+#CFLAGS += -Wno-char-subscripts
+#CFLAGS += -Wno-misleading-indentation
+#CFLAGS += -Wno-multichar
+#CFLAGS += -Wno-pointer-sign
+#CFLAGS += -Wno-unused-but-set-variable
+#CFLAGS += -Wno-unused-parameter
+#CFLAGS += -Wno-unused-variable
+#CFLAGS += -Wno-switch
+CFLAGS += $(shell pkg-config --cflags --libs xcb)
 
-#OBJS_LIB_A: $(wildcard $(OBJ_DIR)/*.a)
+INCLUDE = -IRsc
+INCLUDE += -I$(PALM-SDK-INCLUDE)
+INCLUDE += -I$(PALM-SDK-INCLUDE)/Core
+INCLUDE += -I$(PALM-SDK-INCLUDE)/Core/Hardware
+INCLUDE += -I$(PALM-SDK-INCLUDE)/Core/System
+INCLUDE += -I$(PALM-SDK-INCLUDE)/Core/UI
+INCLUDE += -I$(PALM-SDK-INCLUDE)/Dynamic
+INCLUDE += -I$(PALM-SDK-INCLUDE)/Libraries
 
-OBJS_LIBS_SO = \
-	$(OBJ_DIR)/EventMgr.a \
-	$(OBJ_DIR)/WindowMgr.a
+LDFLAGS += -shared
 
-VPATH: $(OBJ_DIR)
+#LDLIBS = -lSDL2
+#LDLIBS = -lSDL
+LDLIBS += $(shell pkg-config --cflags --libs xcb)
 
-TARGET_LIB = libpalm
+PALM-SDK = git/clone/palm-sdk-5r3
+PALM-SDK-INCLUDE = $(PALM-SDK)/include
 
-TARGET_LIB_A = libpalm.a
+SRC_DIR = source
+SRCS = $(wildcard $(SRC_DIR)/*.c)
 
-TARGET_LIB_SO = $(TARGET_LIB).so
+TARGET_LIB = libpalm.so
 
-#$(OBJ_TARGET_LIB_SO): $(OBJ_TARGET_LIB_SO)($(OBJS_LIBS_SO))
+VPATH = source
 
-all: $(TARGET_LIB_A) $(TARGET_LIB_SO)
-	ranlib $(OBJ_TARGET_LIB_SO)
+all: $(TARGET_LIB)
 
-#$(OBJ_DIR)/%.a:
-#	make -f makefile.$*
+include git/libbse/makefile.setup
 
-$(OBJ_DIR)/EventMgr.a:
-	make -f makefile.EventMgr
-
-$(OBJ_DIR)/WindowMgr.a:
-	make -f makefile.WindowMgr
+$(OBJ_TARGET_LIB): git/libbse/libbse.so
 
 include git/libbse/makefile.build
