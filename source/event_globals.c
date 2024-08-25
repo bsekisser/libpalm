@@ -19,6 +19,9 @@ static void __event_manager_globals_init(void)
 {
 	LOG();
 
+	queue_init(&event_manager.free);
+	queue_init(&event_manager.pending);
+
 	for(unsigned i = 0; i < __EVENT_QUEUE_ALLOC__; i++) {
 		event_qelem_p qe = &event_manager_queue[i];
 
