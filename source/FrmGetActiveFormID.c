@@ -8,10 +8,4 @@
 /* **** */
 
 UInt16 FrmGetActiveFormID(void)
-{
-	FormPtr formP = FrmGetActiveForm();
-
-	const UInt16 formID = formP ? formP->formId : 0;
-
-	return(formID);
-}
+{ return(FrmGetFormId(FrmGetActiveForm())); }
