@@ -1,4 +1,5 @@
 #include "xForm.h"
+#include "xEvent.h"
 
 /* **** */
 
@@ -15,6 +16,8 @@
 static UInt16 _event_form_id(EventPtr eventP)
 {
 	switch(eventP->eType) {
+//		case frmCloseEvent:
+//			return(eventP->data.frmClose.formID);
 		case frmOpenEvent:
 			return(eventP->data.frmOpen.formID);
 		case frmGotoEvent:
@@ -28,27 +31,21 @@ static UInt16 _event_form_id(EventPtr eventP)
 
 Boolean FrmDispatchEvent(EventPtr eventP)
 {
-//	event_log_event(eventP);
+	Boolean handled = false;
 
-	WinPtr windowP = (WinPtr)current_form;
-	if(!windowP) return(0);
+	LOG_ACTION(event_log_event(eventP));
 
-	assert(windowP->windowFlags.dialog);
+	FormPtr formP = FrmGetFormPtr(_event_form_id(eventP)) ?: current_form;
 
-	switch(eventP->eType) {
-		case nilEvent: break;
-		case frmCloseEvent: break;
-		case frmOpenEvent:
-		case frmGotoEvent:
-			return(FrmHandleEvent(FrmGetFormPtr(_event_form_id(eventP)), eventP));
-		default:
-			if(current_form && current_form->handler) {
-				if(!current_form->handler(eventP))
-					return(FrmHandleEvent(current_form, eventP));
-			} else
-				LOG_ACTION(exit(-1));
-			break;
+	if(formP) {
+		if(formP->handler) {
+			LOG_ACTION(handled = formP->handler(eventP));
+		} else
+			LOG_ACTION(exit(-1));
+
+		if(!handled)
+			return(FrmHandleEvent(formP, eventP));
 	}
 
-	return(0);
+	return(handled);
 }
