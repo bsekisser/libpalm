@@ -52,16 +52,20 @@ Boolean SysHandleEvent(EventPtr eventP)
 			break;
 		case sysEventWinEnterEvent: {
 			WinPtr enterWindow = eventP->data.winEnter.enterWindow;
+			window_manager.enterWindowID = 0;
+			window_manager.exitedWindowID = 0;
 
 			window_manager.activeWindow = enterWindow;
 			(void)WinSetDrawWindow(enterWindow);
 
 			if(enterWindow->windowFlags.dialog)
-				current_form = (FormPtr)enterWindow;
+				LOG_ACTION(current_form = (FormPtr)enterWindow);
 
 			return(true);
 		}break;
 		case sysEventWinExitEvent:
+			window_manager.exitedWindowID = eventP->data.winExit.exitWindow;
+			window_manager.exitWindowID = 0;
 			break;
 		default:
 			return(false);

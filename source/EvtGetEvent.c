@@ -35,14 +35,10 @@ void EvtGetEvent(EventType* eventP, Int32 timeout)
 		eventP->eType = winExitEvent;
 		eventP->data.winExit.exitWindow = window_manager.exitWindowID;
 		eventP->data.winExit.enterWindow = window_manager.enterWindowID;
-		window_manager.exitedWindowID = window_manager.exitWindowID;
-		window_manager.exitWindowID = 0;
 	} else if(window_manager.enterWindowID) {
 		eventP->eType = winEnterEvent;
 		eventP->data.winEnter.exitWindow = window_manager.exitedWindowID;
 		eventP->data.winEnter.enterWindow = window_manager.enterWindowID;
-		window_manager.enterWindowID = 0;
-		window_manager.exitedWindowID = 0;
 	} else {
 		memset(eventP, 0, sizeof(EventType));
 		eventP->eType = nilEvent;
