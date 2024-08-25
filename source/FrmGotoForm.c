@@ -15,8 +15,11 @@ void FrmGotoForm(UInt16 formID)
 {
 	EventType event;
 
-	event.eType = frmCloseEvent;
-	EvtAddEventToQueue(&event);
+	if(current_form) {
+		event.eType = frmCloseEvent;
+		event.data.frmLoad.formID = current_form->formId;
+		EvtAddEventToQueue(&event);
+	}
 
 	event.eType = frmLoadEvent;
 	event.data.frmLoad.formID = formID;
