@@ -1,4 +1,5 @@
 #include "Menu.h"
+#include "xEvent.h"
 
 /* **** */
 
@@ -7,11 +8,20 @@
 
 /* **** */
 
-Boolean MenuHandleEvent(MenuBarType* menuP, EventType* event, UInt16* error)
+Boolean MenuHandleEvent(MenuBarType* menuP, EventType* eventP, UInt16* error)
 {
 	*error = -1;
 
-	LOG("TODO"); return(false);
+	switch(eventP->eType) {
+		case keyDownEvent:
+		case penDownEvent:
+			break;
+		default:
+			return(false);
+	}
 
-	UNUSED(menuP, event, error);
+	LOG_ACTION(event_log_event(eventP));
+	return(false);
+
+	UNUSED(menuP, error);
 }
