@@ -1,5 +1,4 @@
-#include "Form.h"
-#include "Window.h"
+#include "xForm.h"
 
 /* **** */
 
@@ -9,4 +8,4 @@
 /* **** */
 
 void FrmSetActiveForm(FormType *const formP)
-{ WinSetActiveWindow((WinPtr)formP); }
+{ WinSetActiveWindow(&formP->window); }
