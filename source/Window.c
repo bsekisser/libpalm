@@ -48,6 +48,9 @@ void WinEraseRectangle(const RectangleType* rP, UInt16 cornerDiam)
 WinHandle WinGetActiveWindow(void)
 { return(window_manager.activeWindow); }
 
+WinHandle WinGetDrawWindow(void)
+{ return(window_manager.drawWindow); }
+
 WinPtr WinGetFirstWindow(void)
 { return(window_manager.firstWindow); }
 

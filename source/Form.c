@@ -120,9 +120,17 @@ UInt16 FrmDoDialog(FormType* formP)
 
 void FrmDrawForm(FormType* formP)
 {
-	LOG("TODO"); return;
+	WinPtr form_window = &formP->window;
+	WinPtr saved_draw_window = WinSetDrawWindow(form_window);
 
-	UNUSED(formP);
+	if(0) if(saved_draw_window != form_window) {
+		if(formP->attr.saveBehind)
+;//			_FrmEraseForm(formP, true);
+	}
+
+	LOG("TODO");
+
+	WinSetDrawWindow(saved_draw_window);
 }
 
 FormType* FrmGetActiveForm(void)
