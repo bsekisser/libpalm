@@ -1,12 +1,18 @@
-#include "Event.h"
+#include "xEvent.h"
+#include "xWindow.h"
 
 /* **** */
 
-#include "libbse/include/log.h"
+#include "git/libbse/include/log.h"
+#include "git/libbse/include/queue.h"
+#include "git/libbse/include/unused.h"
 
 /* **** */
 
+#include <assert.h>
+#include <inttypes.h>
 #include <stdlib.h>
+#include <string.h>
 
 /* **** */
 
@@ -89,4 +95,61 @@ void event_log_event(EventPtr const eventP)
 			}
 		break;
 	}
+}
+
+/* **** */
+
+void EvtAddEventToQueue(const EventType *const eventP)
+{
+//	LOG_ACTION(event_log_event(eventP));
+
+if(0) {
+	LOG_START("free.head: 0x%016" PRIxPTR, (uintptr_t)event_manager.free.head);
+	LOG_END(", pending.head: 0x%016" PRIxPTR, (uintptr_t)event_manager.pending.head);
+}
+
+	qelem_p p2fqe = queue_dequeue_next(&event_manager.free);
+	if(!p2fqe)
+		LOG_ACTION(exit(-1));
+
+if(0)
+	LOG("free.head.qelem_p: 0x%016" PRIxPTR, (uintptr_t)p2fqe);
+
+	event_qelem_p const p2eqe = p2fqe->data;
+	EventPtr const dstEventP = &p2eqe->the_event;
+
+	memcpy(dstEventP, eventP, sizeof(EventType));
+
+	queue_enqueue(p2fqe, &event_manager.pending);
+
+//	LOG_ACTION(event_log_event((EventPtr const)eventP));
+//	LOG_ACTION(event_log_event(dstEventP));
+}
+
+void EvtGetEvent(EventType* eventP, Int32 timeout)
+{
+	assert(eventP);
+
+	if(window_manager.exitWindowID) {
+		eventP->eType = winExitEvent;
+		eventP->data.winExit.exitWindow = window_manager.exitWindowID;
+		eventP->data.winExit.enterWindow = window_manager.enterWindowID;
+	} else if(window_manager.enterWindowID) {
+		eventP->eType = winEnterEvent;
+		eventP->data.winEnter.exitWindow = window_manager.exitedWindowID;
+		eventP->data.winEnter.enterWindow = window_manager.enterWindowID;
+	} else {
+		qelem_p qe = queue_dequeue_next(&event_manager.pending);
+		event_qelem_p eqe = qe ? qe->data : 0;
+
+		if(eqe) {
+			memcpy(eventP, &eqe->the_event, sizeof(EventType));
+			queue_enqueue(&eqe->qElem, &event_manager.free);
+		} else {
+			memset(eventP, 0, sizeof(EventType));
+			eventP->eType = nilEvent;
+		}
+	}
+
+	UNUSED(timeout);
 }
