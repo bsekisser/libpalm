@@ -1,12 +1,11 @@
 CFLAGS = -O1
 CFLAGS += -fPIC
-CFLAGS += -D__LIB_PALM_SDK__
 CFLAGS += -DEMULATION_LEVEL=EMULATION_UNIX
 CFLAGS += -fvisibility=hidden
 #CFLAGS += -nostdinc
 #CFLAGS += -Wno-char-subscripts
 #CFLAGS += -Wno-misleading-indentation
-#CFLAGS += -Wno-multichar
+CFLAGS += -Wno-multichar
 #CFLAGS += -Wno-pointer-sign
 #CFLAGS += -Wno-unused-but-set-variable
 #CFLAGS += -Wno-unused-parameter

@@ -3,6 +3,7 @@
 /* **** */
 
 #include "SystemMgr.h"
+#include "SysUtils.h"
 #include "xResourceMgr.h"
 
 /* **** */

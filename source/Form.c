@@ -1,4 +1,5 @@
 #include "xForm.h"
+#include "xWindow.h"
 
 /* **** */
 
