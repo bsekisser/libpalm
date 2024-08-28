@@ -2,6 +2,7 @@
 
 /* **** */
 
+#include "chunk_t.h"
 #include "utility.h"
 
 /* **** */
@@ -12,6 +13,7 @@
 
 #include <inttypes.h>
 #include <stdlib.h>
+#include <string.h>
 
 /* **** */
 
@@ -85,4 +87,71 @@ if(0)		LOG("mp: 0x%016" PRIxPTR, (uintptr_t)mp);
 	}
 
 	return(0);
+}
+
+/* **** */
+
+Err MemHandleFree(MemHandle h)
+{
+	master_pointer_p mp = master_pointer_find_handle(h, 0);
+	if(!mp)
+		return(memErrInvalidParam);
+
+	if(mp->alloc)
+		free(mp->data);
+
+	memset(mp, 0, sizeof(master_pointer_t));
+
+	return(errNone);
+}
+
+
+MemPtr MemHandleLock(MemHandle h)
+{
+	master_pointer_p mp = master_pointer_find_handle(h, 0);
+	if(!mp)
+		return(0);
+
+	mp->locked = true;
+	mp->lockCount++;
+
+	return(mp->data);
+}
+
+MemHandle MemHandleNew(UInt32 size)
+{
+	master_pointer_p mp = master_pointer_calloc(size);
+
+	mp->size = size;
+
+	return((MemHandle)mp);
+}
+
+Err MemHandleUnlock(MemHandle h)
+{
+	master_pointer_p mp = master_pointer_find_handle(h, 0);
+	if(!mp)
+		return(memErrInvalidParam);
+
+	if(mp->lockCount)
+		mp->lockCount--;
+
+	mp->locked = (0 != mp->lockCount);
+
+	return(errNone);
+}
+
+Err MemMove(void* dst, const void* src, Int32 n)
+{ memmove(dst, src, n); return(0); }
+
+Err MemPtrUnlock(MemPtr p)
+{
+	chunk_p chunk = (chunk_p)((void*)p - (void*)OFFSET_OF(chunk_p, p));
+
+	if(chunk->lockCount)
+		chunk->lockCount--;
+
+	chunk->isLocked = (0 != chunk->lockCount);
+
+	return(errNone);
 }
