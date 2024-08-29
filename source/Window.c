@@ -1,4 +1,6 @@
 #include "xWindow.h"
+#include "sdk/include/Core/System/SystemMgr.h"
+#include "sdk/include/Libraries/PalmOSGlue/WinGlue.h"
 
 /* **** */
 
@@ -7,6 +9,22 @@
 #include "git/libbse/include/unused.h"
 
 /* **** */
+
+#include <stdlib.h>
+
+/* **** */
+
+void _WinCreateWindow(WinPtr windowP, const RectangleType* bounds, FrameType frame,
+	Boolean modal, Boolean focusable)
+{
+	RctCopyRectangle(bounds, &windowP->windowBounds);
+	_WinSetClip(windowP, bounds);
+
+	WinGlueSetFrameType(WinGetWindowHandle(windowP), frame);
+
+	windowP->windowFlags.modal = modal;
+	windowP->windowFlags.focusable = focusable;
+}
 
 static void _WinGetWindowExtent(WinPtr const windowP, Coord *const extentX, Coord *const extentY)
 {
@@ -30,6 +48,24 @@ void WinAddWindow(WinHandle winHandle)
 {
 	winHandle->nextWindow = window_manager.firstWindow;
 	window_manager.firstWindow = winHandle;
+}
+
+WinHandle WinCreateWindow(const RectangleType* bounds, FrameType frame,
+	Boolean modal, Boolean focusable, UInt16* error)
+{
+	*error = errNone;
+
+	WinPtr windowP = calloc(1, sizeof(WindowType));
+	if(!windowP) {
+		*error = sysErrNoFreeResource;
+		return(0);
+	}
+
+	_WinCreateWindow(windowP, bounds, frame, modal, focusable);
+
+	WinAddWindow(windowP);
+
+	return(windowP);
 }
 
 void WinDrawBitmap(BitmapPtr bitmapP, Coord x, Coord y)

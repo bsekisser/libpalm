@@ -20,12 +20,14 @@ typedef struct window_manager_t* window_manager_p;
 	typedef struct WindowFlagsType {
 		unsigned dialog:1;
 		unsigned enabled:1;
+		unsigned focusable:1;
 		unsigned modal:1;
 	}WindowFlagsType;
 
 	typedef struct WindowType {
 		WindowFlagsType windowFlags;
 		RectangleType windowBounds;
+		FrameBitsType frameType;
 		WinHandle nextWindow;
 	}WindowType;
 #endif
@@ -44,6 +46,9 @@ typedef struct window_manager_t {
 extern window_manager_t window_manager;
 
 /* **** */
+
+void _WinCreateWindow(WinPtr windowP, const RectangleType* bounds, FrameType frame,
+	Boolean modal, Boolean focusable);
 
 void _WinSetClip(WinPtr windowP, const RectangleType* rP);
 
