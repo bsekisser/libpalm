@@ -28,7 +28,7 @@
 FormType* FrmInitForm(UInt16 rscID)
 {
 	FormType f;
-	WindowType* fw = &f.window;
+	WinPtr fw = &f.window;
 	RectanglePtr bounds = &fw->windowBounds;
 
 	f.handler = 0;
@@ -102,6 +102,9 @@ FormType* FrmInitForm(UInt16 rscID)
 	}
 
 	/* **** */
+
+	_WinCreateWindow(&formP->window, bounds, simpleFrame, fw->windowFlags.modal, true);
+	WinAddWindow(&formP->window);
 
 	MemHandleUnlock(h2fr);
 	MemHandleFree(h2fr);
