@@ -98,6 +98,49 @@ void WinDrawRectangle(const RectangleType* rP, UInt16 cornerDiam)
 	UNUSED(rP, cornerDiam);
 }
 
+xcb_window_p _window_manager_window_create_xcb_window(WinPtr const windowP)
+{
+	if(!window_manager->xcb.connection) {
+		window_manager.xcb.connection = xcb_connect(NULL, NULL);
+
+		assert(window_manager.xcb.connection);
+	}
+
+	if(!window_manager.xcb.screen) {
+		window_manager.xcb.screen = xcb_setup_roots_interator(
+			xcb_get_setup(window_manager.xcb.connection)).data;
+
+		assert(window_manager.xcb.screen);
+	}
+
+	xcb_window_p xcb_window = xcb_generate_id(window_manager.xcb.connection);
+
+	unsigned border_width = 0;
+
+	switch(windowP->frameType) {
+		case noFrame:
+			border_width = 0;
+
+	xcb_create_winow(window_manager.xcb.connection,
+		XCB_COPY_FROM_PARENT,
+		xcb_window,
+		window_manager.xcb.screen,
+		windowP->windowBounds.topLeft.x, windowP->windowBounds.topLeft.y,
+		windowP->windowBounds.extent.x, windowP->windowBounds.extent.y,
+		border_width,
+		XCB_WINDOW_CLASS_INPUT_OUTPUT,
+		window_manager.xcb.screen->root_visual,
+		0, NULL);
+
+	return(xcb_window);
+}
+
+void WinDrawWindow(WinPtr const windowP)
+{
+	if(!windowP->xcb.window)
+		assert(window_manager_window_create_xcb_window(windowP));
+}
+
 void WinEraseRectangle(const RectangleType* rP, UInt16 cornerDiam)
 {
 	LOG("TODO"); return;

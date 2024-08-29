@@ -137,6 +137,8 @@ void FrmDrawForm(FormType* formP)
 ;//			_FrmEraseForm(formP, true);
 	}
 
+	WinDrawWindow(form_window);
+
 	LOG("TODO");
 
 	WinSetDrawWindow(saved_draw_window);

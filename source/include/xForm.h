@@ -4,7 +4,7 @@
 
 /* **** */
 
-#define ALLOW_ACCESS_TO_INTERNALS_OF_FORMS
+//#define ALLOW_ACCESS_TO_INTERNALS_OF_FORMS
 //#define ALLOW_ACCESS_TO_INTERNALS_OF_WINDOWS
 
 #ifndef ALLOW_ACCESS_TO_INTERNALS_OF_WINDOWS
@@ -20,7 +20,20 @@
 	typedef struct FormAttrTag {
 		unsigned saveBehind:1;
 		unsigned usable:1;
+		unsigned visible:1;
 	}FormAttrType;
+
+	typedef struct FormObjAttrTag* FormObjAttrTypePtr;
+	typedef struct FormObjAttrTag {
+		unsigned usable:1;
+	}FormObjAttrType;
+
+	typedef struct FormLabelTag* FormLabelTypePtr;
+	typedef struct FormLabelTag {
+		FormObjAttrType attr;
+		UInt8 reserved;
+		Char* text;
+	}FormLabelType;
 
 	typedef struct FormObjListTag* FormObjListTypePtr;
 	typedef struct FormObjListTag {
@@ -30,14 +43,15 @@
 	typedef struct FormType* FormPtr;
 	typedef struct FormType {
 		WindowType window;
-		uint16_t formId;
+		UInt16 formId;
 		FormAttrType attr;
 		WinHandle bitsBehindForm;
 		FormEventHandlerPtr handler;
-		uint16_t defaultButton;
-		uint16_t helpRscId;
-		uint16_t menuRscId;
-		uint16_t numObjects;
+		UInt16 focus;
+		UInt16 defaultButton;
+		UInt16 helpRscId;
+		UInt16 menuRscId;
+		UInt16 numObjects;
 		FormObjListTypePtr objects;
 	}FormType;
 #endif
