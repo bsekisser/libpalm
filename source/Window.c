@@ -8,6 +8,14 @@
 
 /* **** */
 
+static void _WinGetWindowExtent(WinPtr const windowP, Coord *const extentX, Coord *const extentY)
+{
+	*extentX = windowP->windowBounds.extent.x;
+	*extentY = windowP->windowBounds.extent.y;
+}
+
+/* **** */
+
 void WinDrawBitmap(BitmapPtr bitmapP, Coord x, Coord y)
 {
 	LOG("TODO"); return;
@@ -56,6 +64,9 @@ WinPtr WinGetFirstWindow(void)
 
 WinPtr WinGetNextWindow(WinPtr windowP)
 { return(windowP->nextWindow); }
+
+void WinGetWindowExtent(Coord *const extentX, Coord *const extentY)
+{ return(_WinGetWindowExtent(window_manager.drawWindow, extentX, extentY)); }
 
 void WinResetClip(void)
 { LOG("TODO"); return; }
