@@ -16,6 +16,12 @@ static void _WinGetWindowExtent(WinPtr const windowP, Coord *const extentX, Coor
 
 /* **** */
 
+void WinAddWindow(WinHandle winHandle)
+{
+	winHandle->nextWindow = window_manager.firstWindow;
+	window_manager.firstWindow = winHandle;
+}
+
 void WinDrawBitmap(BitmapPtr bitmapP, Coord x, Coord y)
 {
 	LOG("TODO"); return;
