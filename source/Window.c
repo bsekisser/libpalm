@@ -14,6 +14,16 @@ static void _WinGetWindowExtent(WinPtr const windowP, Coord *const extentX, Coor
 	*extentY = windowP->windowBounds.extent.y;
 }
 
+void _WinSetClip(WinPtr windowP, const RectangleType* rP)
+{
+	if(!windowP) return; // intentional, fail silently.
+
+	windowP->clippingBounds.top = rP->topLeft.x;
+	windowP->clippingBounds.left = rP->topLeft.y;
+	windowP->clippingBounds.bottom = rP->topLeft.x + rP->extent.x;
+	windowP->clippingBounds.right = rP->topLeft.y + rP->extent.y;
+}
+
 /* **** */
 
 void WinAddWindow(WinHandle winHandle)
@@ -114,11 +124,7 @@ void WinSetActiveWindow(WinHandle winHandle)
 }
 
 void WinSetClip(const RectangleType* rP)
-{
-	LOG("TODO"); return;
-
-	UNUSED(rP);
-}
+{ return(_WinSetClip(window_manager.drawWindow, rP)); }
 
 WinPtr WinSetDrawWindow(WinHandle winHandle)
 {

@@ -45,6 +45,10 @@ extern window_manager_t window_manager;
 
 /* **** */
 
+void _WinSetClip(WinPtr windowP, const RectangleType* rP);
+
+/* **** */
+
 void WindowMgrInit(void);
 WinPtr WinGetNextWindow(WinPtr windowP);
 WinHandle WinSetDrawWindow(WinHandle winHandle);
