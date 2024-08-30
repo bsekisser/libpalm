@@ -17,20 +17,28 @@
 
 /* **** */
 
-static UInt16 _event_form_id(EventPtr eventP)
+static int _event_form_id(EventPtr eventP)
 {
 	switch(eventP->eType) {
-//		case frmCloseEvent:
-//			return(eventP->data.frmClose.formID);
-		case frmOpenEvent:
-			return(eventP->data.frmOpen.formID);
+		case frmCloseEvent:
+			return(eventP->data.frmClose.formID);
 		case frmGotoEvent:
 			return(eventP->data.frmGoto.formID);
+		case frmLoadEvent:
+			return(eventP->data.frmLoad.formID);
+		case frmOpenEvent:
+			return(eventP->data.frmOpen.formID);
+		case frmTitleEnterEvent:
+			return(eventP->data.frmTitleEnter.formID);
+		case frmTitleSelectEvent:
+			return(eventP->data.frmTitleSelect.formID);
+		case frmUpdateEvent:
+			return(eventP->data.frmUpdate.formID);
 		default:
 			break;
 	}
 
-	LOG_ACTION(exit(-1));
+	return(-1);
 }
 
 /* **** */
@@ -96,11 +104,12 @@ Boolean FrmDispatchEvent(EventPtr eventP)
 
 	LOG_ACTION(event_log_event(eventP));
 
-	FormPtr formP = FrmGetFormPtr(_event_form_id(eventP)) ?: current_form;
+	UInt16 formID = _event_form_id(eventP);
+	FormPtr formP = (0 < (Int16)formID) ? FrmGetFormPtr(formID) : current_form;
 
 	if(formP) {
 		if(formP->handler) {
-			LOG_ACTION(handled = formP->handler(eventP));
+			handled = formP->handler(eventP);
 		} else
 			LOG_ACTION(exit(-1));
 
