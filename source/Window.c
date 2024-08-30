@@ -48,7 +48,7 @@ void _WinSetClip(WinPtr windowP, const RectangleType* rP)
 
 /* **** */
 
-void WinAddWindow(WinHandle winHandle)
+void WinAddWindow(WinHandle winHandle) // system use function
 {
 	winHandle->nextWindow = window_manager.firstWindow;
 	window_manager.firstWindow = winHandle;
@@ -181,7 +181,7 @@ WinPtr WinGetNextWindow(WinPtr windowP)
 void WinGetWindowExtent(Coord *const extentX, Coord *const extentY)
 { return(_WinGetWindowExtent(window_manager.drawWindow, extentX, extentY)); }
 
-void WinRemoveWindow(WinHandle h2window)
+void WinRemoveWindow(WinHandle h2window) // system use function
 {
 	const WinPtr the_window = h2window;
 	WinPtr lhs = window_manager.firstWindow;
