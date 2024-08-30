@@ -10,6 +10,7 @@
 
 /* **** */
 
+#include <assert.h>
 #include <stdlib.h>
 
 /* **** */
@@ -24,6 +25,8 @@ void _WinCreateWindow(WinPtr windowP, const RectangleType* bounds, FrameType fra
 
 	windowP->windowFlags.modal = modal;
 	windowP->windowFlags.focusable = focusable;
+
+	windowP->xcb.window = 0;
 }
 
 static void _WinGetWindowExtent(WinPtr const windowP, Coord *const extentX, Coord *const extentY)
@@ -75,7 +78,6 @@ void WinDrawBitmap(BitmapPtr bitmapP, Coord x, Coord y)
 	UNUSED(bitmapP, x, y);
 }
 
-
 void WinDrawChars(const Char* chars, Int16 len,
 	Coord x, Coord y)
 {
@@ -98,47 +100,62 @@ void WinDrawRectangle(const RectangleType* rP, UInt16 cornerDiam)
 	UNUSED(rP, cornerDiam);
 }
 
-xcb_window_p _window_manager_window_create_xcb_window(WinPtr const windowP)
+xcb_window_t _window_manager_window_create_xcb_window(WinPtr const windowP)
 {
-	if(!window_manager->xcb.connection) {
+	LOG();
+
+	if(!window_manager.xcb.connection) {
 		window_manager.xcb.connection = xcb_connect(NULL, NULL);
 
 		assert(window_manager.xcb.connection);
+
+		if(!window_manager.xcb.screen) {
+			window_manager.xcb.screen = xcb_setup_roots_iterator(
+				xcb_get_setup(window_manager.xcb.connection)).data;
+
+			assert(window_manager.xcb.screen);
+		}
 	}
 
-	if(!window_manager.xcb.screen) {
-		window_manager.xcb.screen = xcb_setup_roots_interator(
-			xcb_get_setup(window_manager.xcb.connection)).data;
+	xcb_window_t xcb_window = xcb_generate_id(window_manager.xcb.connection);
+	uint32_t mask =
+		XCB_CW_BACK_PIXEL
+		| XCB_CW_SAVE_UNDER
+		| XCB_CW_EVENT_MASK;
+	uint32_t values[3] = {
+			window_manager.xcb.screen->black_pixel,
+			1,
+			XCB_EVENT_MASK_BUTTON_PRESS	| XCB_EVENT_MASK_KEY_RELEASE,
+		};
 
-		assert(window_manager.xcb.screen);
-	}
-
-	xcb_window_p xcb_window = xcb_generate_id(window_manager.xcb.connection);
-
-	unsigned border_width = 0;
-
-	switch(windowP->frameType) {
-		case noFrame:
-			border_width = 0;
-
-	xcb_create_winow(window_manager.xcb.connection,
+	xcb_create_window(window_manager.xcb.connection,
 		XCB_COPY_FROM_PARENT,
 		xcb_window,
-		window_manager.xcb.screen,
+		window_manager.xcb.screen->root,
 		windowP->windowBounds.topLeft.x, windowP->windowBounds.topLeft.y,
 		windowP->windowBounds.extent.x, windowP->windowBounds.extent.y,
-		border_width,
+		windowP->frameType.bits.width,
 		XCB_WINDOW_CLASS_INPUT_OUTPUT,
 		window_manager.xcb.screen->root_visual,
-		0, NULL);
+		mask, &values);
 
 	return(xcb_window);
 }
 
 void WinDrawWindow(WinPtr const windowP)
 {
-	if(!windowP->xcb.window)
-		assert(window_manager_window_create_xcb_window(windowP));
+	LOG();
+
+	if(!windowP->xcb.window) {
+		windowP->xcb.window = _window_manager_window_create_xcb_window(windowP);
+		assert(windowP->xcb.window);
+	}
+
+	LOG();
+
+	xcb_map_window(window_manager.xcb.connection, windowP->xcb.window);
+
+	xcb_flush(window_manager.xcb.connection);
 }
 
 void WinEraseRectangle(const RectangleType* rP, UInt16 cornerDiam)

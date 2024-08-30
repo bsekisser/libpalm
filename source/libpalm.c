@@ -20,7 +20,7 @@
 
 int main(int argc, char** argv)
 {
-	xcb_connection_t* xc = xcb_connect(0, 0);
+//	xcb_connection_t* xc = xcb_connect(0, 0);
 
 	/* **** */
 
@@ -47,7 +47,7 @@ int main(int argc, char** argv)
 
 	/* **** */
 
-	xcb_disconnect(xc);
+//	xcb_disconnect(xc);
 
 	return(0);
 

@@ -97,6 +97,52 @@ void event_log_event(EventPtr const eventP)
 	}
 }
 
+static Boolean xcb_event(EventPtr const eventP)
+{
+	xcb_generic_event_t* e;
+	Boolean handled = 0;
+
+	e = xcb_poll_for_event(window_manager.xcb.connection);
+	if(e) {
+		LOG("0x%08x", e->response_type);
+		switch(e->response_type & ~0x80) {
+			case XCB_BUTTON_PRESS: {
+				xcb_button_press_event_t* ev = (xcb_button_press_event_t*)e;
+				eventP->eType = penDownEvent;
+				eventP->penDown = true;
+				eventP->screenX = ev->event_x;
+				eventP->screenY = ev->event_y;
+				handled = 1;
+			}break;
+			case XCB_KEY_RELEASE: {
+				xcb_key_release_event_t* ev = (xcb_key_release_event_t*)e;
+				switch(ev->detail) {
+					case 9: // ESC
+						free(e);
+						xcb_disconnect(window_manager.xcb.connection);
+						exit(0);
+						break;
+					default:
+						eventP->eType = keyDownEvent;
+						eventP->data.keyDown.chr = ev->detail;
+						eventP->data.keyDown.modifiers =
+							((ev->state & (1 << 0)) &&  shiftKeyMask) // shift
+							|| ((ev->state & (1 << 1)) && capsLockMask) // lock
+							|| ((ev->state & (1 << 2)) && commandKeyMask); // ctrl
+						eventP->screenX = ev->event_x;
+						eventP->screenY = ev->event_y;
+						handled = 1;
+						break;
+				}
+			}break;
+		}
+
+		free(e);
+	}
+
+	return(handled);
+}
+
 /* **** */
 
 void EvtAddEventToQueue(const EventType *const eventP)
@@ -145,10 +191,14 @@ void EvtGetEvent(EventType* eventP, Int32 timeout)
 		if(eqe) {
 			memcpy(eventP, &eqe->the_event, sizeof(EventType));
 			queue_enqueue(&eqe->qElem, &event_manager.free);
-		} else {
-			memset(eventP, 0, sizeof(EventType));
-			eventP->eType = nilEvent;
+			return;
+		} else if(window_manager.xcb.connection) {
+			if(xcb_event(eventP))
+				return;
 		}
+
+		memset(eventP, 0, sizeof(EventType));
+		eventP->eType = nilEvent;
 	}
 
 	UNUSED(timeout);

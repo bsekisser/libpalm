@@ -18,6 +18,7 @@
 
 Boolean SysHandleEvent(EventPtr eventP)
 {
+#if 0
 	static unsigned nilCount = 0;
 
 	if(nilEvent == eventP->eType)
@@ -26,6 +27,7 @@ Boolean SysHandleEvent(EventPtr eventP)
 		nilCount = 0;
 
 	assert(16 > nilCount);
+#endif
 
 	switch(eventP->eType)
 	{
@@ -40,8 +42,10 @@ Boolean SysHandleEvent(EventPtr eventP)
 		case sysEventKeyUpEvent:
 			break;
 		case sysEventNilEvent:
+#if 0
 			nilCount++;
 			assert(16 > nilCount);
+#endif
 			return(true);
 		case sysEventPenDownEvent:
 		case sysEventPenMoveEvent:

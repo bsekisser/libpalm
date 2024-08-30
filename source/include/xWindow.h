@@ -33,6 +33,7 @@ typedef struct window_manager_t* window_manager_p;
 	typedef struct WindowType {
 		WindowFlagsType windowFlags;
 		RectangleType windowBounds;
+		AbsRectType clippingBounds;
 		FrameBitsType frameType;
 		WinHandle nextWindow;
 		struct {
@@ -68,5 +69,6 @@ void _WinSetClip(WinPtr windowP, const RectangleType* rP);
 /* **** */
 
 void WindowMgrInit(void);
+void WinDrawWindow(WinPtr const windowP);
 WinPtr WinGetNextWindow(WinPtr windowP);
 WinHandle WinSetDrawWindow(WinHandle winHandle);
