@@ -72,6 +72,23 @@ WinHandle WinCreateWindow(const RectangleType* bounds, FrameType frame,
 	return(windowP);
 }
 
+void WinDeleteWindow(WinHandle winHandle, Boolean eraseIt)
+{
+	WinPtr windowP = winHandle;
+
+	if(window_manager.xcb.connection) {
+		if(windowP->xcb.window) {
+			if(eraseIt)
+				LOG("TODO: eraseIt");
+
+			xcb_unmap_window(window_manager.xcb.connection, windowP->xcb.window);
+		}
+	}
+
+	WinRemoveWindow(winHandle);
+	free(winHandle);
+}
+
 void WinDrawBitmap(BitmapPtr bitmapP, Coord x, Coord y)
 {
 	LOG("TODO"); return;
