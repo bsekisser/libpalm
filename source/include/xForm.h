@@ -37,6 +37,7 @@
 
 	typedef struct FormObjListTag* FormObjListTypePtr;
 	typedef struct FormObjListTag {
+		FormObjectKind objectType;
 		FormObjListTypePtr next;
 	}FormObjListType;
 

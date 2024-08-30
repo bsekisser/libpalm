@@ -81,21 +81,83 @@ FormType* FrmInitForm(UInt16 rscID)
 	FormPtr formP = calloc(1, formAlloc);
 	memcpy(formP, &f, formAlloc);
 
-	void* objectP = &formP->objects;
+	void** objectP = &formP->objects;
 
 	for(unsigned i = 0; i < f.numObjects; i++)
 	{
 		uint16_t objID = uint16be(&p);
-		uint32_t objType[2] = { htole32(uint32be(&p)), 0 };
-//		uint32_t objType[2] = { uint32le(&p), 0 };
+		uint32_t objType = uint32be(&p);
 
-		switch(objType[0]) {
+		uint32_t objTypeString[2] = { htole32(be32toh(objType)), 0 };
+
+		switch(objType) {
+			case 'Talt':
+				*objectP++ = 0;
+//				load_form_alert(objectP, objectP, objID, objType);
+				break;
+			case 'tBTN':
+				*objectP++ = 0;
+//				load_form_button(objectP, objID, objType);
+				break;
+			case 'tCBX':
+				*objectP++ = 0;
+//				load_form_checkbox(objectP, objID, objType);
+				break;
 			case 'tFBM':
-//				*objectP++ = load_form_bitmap(objID, objType[0]);
+				*objectP++ = 0;
+//				load_form_bitmap(objectP, objID, objType);
+				break;
+			case 'tFLD':
+				*objectP++ = 0;
+//				load_form_field(objectP, objID, objType);
+				break;
+			case 'tGDT':
+				*objectP++ = 0;
+//				load_form_gadget(objectP, objID, objType);
+				break;
+			case 'tGSI':
+				*objectP++ = 0;
+//				load_form_graffiti_shift_indicator(objectP, objID, objType);
+				break;
+			case 'tLBL':
+				*objectP++ = 0;
+//				load_form_label(objectP, objID, objType);
+				break;
+			case 'tLST':
+				*objectP++ = 0;
+//				load_form_list(objectP, objID, objType);
+				break;
+			case 'tPBN':
+				*objectP++ = 0;
+//				load_form_push_button(objectP, objID, objType);
+				break;
+			case 'tPUT':
+				*objectP++ = 0;
+//				load_form_popup_trigger(objectP, objID, objType);
+				break;
+			case 'tREP':
+				*objectP++ = 0;
+//				load_form_repeating_button(objectP, objID, objType);
+				break;
+			case 'tSCL':
+				*objectP++ = 0;
+//				load_form_scrollbar(objectP, objID, objType);
+				break;
+			case 'tSLT':
+				*objectP++ = 0;
+//				load_form_selector_trigger(objectP, objID, objType);
+				break;
+			case 'tTBL':
+				*objectP++ = 0;
+//				load_form_table(objectP, objID, objType);
+				break;
+			case 'tTTL':
+				*objectP++ = 0;
+//				load_form_tittle(objectP, objID, objType);
 				break;
 			default:
 				LOGx("%u", objID);
-				LOGx("0x%08x (%s)", objType[0], (char*)&objType[0]);
+				LOGx("0x%08x (%s)", objType, (char*)&objTypeString);
 				LOG_ACTION(exit(-1));
 				break;
 		}
