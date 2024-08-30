@@ -11,6 +11,7 @@
 /* **** */
 
 #include <assert.h>
+#include <inttypes.h>
 #include <stdlib.h>
 
 /* **** */
@@ -179,6 +180,42 @@ WinPtr WinGetNextWindow(WinPtr windowP)
 
 void WinGetWindowExtent(Coord *const extentX, Coord *const extentY)
 { return(_WinGetWindowExtent(window_manager.drawWindow, extentX, extentY)); }
+
+void WinRemoveWindow(WinHandle h2window)
+{
+	const WinPtr the_window = h2window;
+	WinPtr lhs = window_manager.firstWindow;
+
+	if(0) {
+		LOG_START("the_window: 0x%016" PRIxPTR, (uintptr_t)the_window);
+		LOG_END(", firstWindow: 0x%016" PRIxPTR, (uintptr_t)lhs);
+	}
+
+	if(the_window == lhs) {
+		if(0)
+			LOG("matched firstWindow: 0x%016" PRIxPTR, (uintptr_t)lhs);
+
+		window_manager.firstWindow = the_window->nextWindow;
+		return;
+	}
+
+	do {
+		if(the_window == lhs->nextWindow) {
+			if(0) {
+				LOG("matched lhs->nextWindow: 0x%016" PRIxPTR,
+					(uintptr_t)lhs->nextWindow);
+			}
+
+			lhs->nextWindow = the_window->nextWindow;
+			return;
+		}
+
+		lhs = lhs->nextWindow;
+
+		if(0)
+			LOG("lhs: 0x%016" PRIxPTR, (uintptr_t)lhs);
+	}while(lhs);
+}
 
 void WinResetClip(void)
 { LOG("TODO"); return; }
