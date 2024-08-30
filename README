@@ -1,10 +1,9 @@
 palm-sdk-5r3
-	sdk was modified to define internal structures
 
 libbse
 
-git
-	clone
+git/
+	clone/
 		palm-sdk-5r3
 	libbse
 	libpalm
