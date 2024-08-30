@@ -12,6 +12,7 @@
 
 /* **** */
 
+#include <inttypes.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -93,9 +94,27 @@ UInt16 FrmCustomAlert(UInt16 alertID,
 
 void FrmDeleteForm(FormType* formP)
 {
-	LOG("TODO"); return;
+	for(unsigned x = 0; x < formP->numObjects; x++) {
+		FormObjListTypePtr formObject = &formP->objects[x];
+		if(!formObject) continue;
 
-	UNUSED(formP);
+		FormObjectKind objectType = formObject->objectType;
+
+		switch(objectType) {
+			default:
+				LOG_START("TODO: delete formObject: 0x%016" PRIxPTR, (uintptr_t)formObject);
+				LOG_END(", objectKind: 0x%08x", objectType);
+				break;
+		}
+	}
+
+	if(formP->helpRscId)
+		LOG("TODO: delete form help");
+
+	if(formP->menuRscId)
+		LOG("TODO: delete form menu");
+
+	WinDeleteWindow(&formP->window, formP->attr.saveBehind);
 }
 
 Boolean FrmDispatchEvent(EventPtr eventP)
@@ -265,6 +284,8 @@ Boolean FrmHandleEvent(FormPtr formP, EventPtr eventP)
 		case fldHeightChangedEvent:
 //
 		case frmCloseEvent:
+			FrmDeleteForm(formP);
+			return(1);
 		case frmGadgetEnterEvent:
 		case frmGadgetMiscEvent:
 		case frmTitleEnterEvent:
