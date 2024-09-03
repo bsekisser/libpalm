@@ -178,6 +178,11 @@ void FrmDrawForm(FormType* formP)
 
 	WinDrawWindow(form_window);
 
+	for(unsigned i = 0; i < formP->numObjects; i++)
+	{
+		FormObjListTypePtr objectP = &formP->objects[i];
+	}
+
 	LOG("TODO");
 
 	WinSetDrawWindow(saved_draw_window);

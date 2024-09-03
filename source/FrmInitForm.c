@@ -1,9 +1,12 @@
 #include "config.h"
 
+#include "xControl.h"
 #include "xForm.h"
 
 /* **** */
 
+#include "DataMgr.h"
+#include "StringMgr.h"
 #include "UIResources.h"
 #include "xRect.h"
 
@@ -13,6 +16,7 @@
 
 /* **** */
 
+#include "git/libbse/include/err_test.h"
 #include "git/libbse/include/log.h"
 #include "git/libbse/include/unused.h"
 
@@ -29,8 +33,68 @@
 
 /* **** */
 
+static void _load_form_button(FormObjListTypePtr objListItemP, UInt16 objID, UInt32 objType)
+{
+	LOG();
+
+	objListItemP->objectType = frmControlObj;
+
+	MemHandle h2r = DmGetResource(objType, objID);
+	void* p = (void*)MemHandleLock(h2r);
+
+	ControlType ctl;
+
+	p = ldu16be(&ctl.id, p);
+	p = RectangleTypeLoad(&ctl.bounds, p);
+	Boolean usable = uint8(&p); p += 1;
+	Boolean leftAnchor = uint8(&p); p += 1;
+	UInt8 frame = uint8(&p); p += 1;
+	Boolean nonBoldFrame = uint8(&p); p += 1;
+	ctl.font = uint8(&p);
+	ctl.text = p;
+
+	MemHandleUnlock(p);
+	DmReleaseResource(h2r);
+
+	ControlType *const ctlP = _CtlNewFormButtonControl(&ctl, usable, leftAnchor, frame, nonBoldFrame);
+
+	objListItemP->object.control = ctlP;
+}
+
+static void _load_form_tittle(FormObjListTypePtr objListItemP, UInt16 objID, UInt32 objType)
+{
+	LOG();
+
+	objListItemP->objectType = frmTitleObj;
+	objListItemP->object.title = calloc(1, sizeof(FormTitleType));
+	ERR_NULL(objListItemP->object.title);
+
+	FormTitleType *const titleP = objListItemP->object.title;
+
+	MemHandle h2tr = DmGetResource(objType, objID);
+	MemPtr p2tr = MemHandleLock(h2tr);
+
+	void* p = p2tr;
+
+	titleP->text = calloc(1, StrLen(p));
+	ERR_NULL(titleP->text);
+
+	p = StrCopy(titleP->text, p);
+
+	LOG();
+
+	if(config.info.form.initForm) {
+		LOGx("%s", titleP->text);
+	}
+
+	MemHandleUnlock(h2tr);
+	DmReleaseResource(h2tr);
+}
+
 FormType* FrmInitForm(UInt16 rscID)
 {
+	LOG();
+
 	FormType f;
 	WinPtr fw = &f.window;
 	RectanglePtr bounds = &fw->windowBounds;
@@ -51,10 +115,7 @@ FormType* FrmInitForm(UInt16 rscID)
 
 	/* **** */
 
-	p = lds16be(&bounds->topLeft.x, p);
-	p = lds16be(&bounds->topLeft.y, p);
-	p = lds16be(&bounds->extent.x, p);
-	p = lds16be(&bounds->extent.y, p);
+	p = RectangleTypeLoad(bounds, p);
 
 	f.attr.usable = uint8(&p); p += 1;
 	fw->windowFlags.modal = uint8(&p); p += 1;
@@ -85,14 +146,21 @@ FormType* FrmInitForm(UInt16 rscID)
 	const size_t formAlloc = sizeof(FormType) + objPtrAlloc;
 
 	FormPtr formP = calloc(1, formAlloc);
-	PEDANTIC(assert(formP));
+	ERR_NULL(formP);
 
 	memcpy(formP, &f, formAlloc);
 
-	void** objectP = (void*)&formP->objects;
+	LOG();
+
+	FormObjListTypePtr objectsP = calloc(f.numObjects, sizeof(FormObjListType));
+	ERR_NULL(objectsP);
+
+	formP->objects = objectsP;
 
 	for(unsigned i = 0; i < f.numObjects; i++)
 	{
+		FormObjListTypePtr objectP = &objectsP[i];
+
 		uint16_t objID = uint16be(&p);
 		uint32_t objType = uint32be(&p);
 
@@ -100,68 +168,52 @@ FormType* FrmInitForm(UInt16 rscID)
 
 		switch(objType) {
 			case 'Talt':
-				*objectP++ = 0;
 //				load_form_alert(objectP, objectP, objID, objType);
 				break;
 			case 'tBTN':
-				*objectP++ = 0;
-//				load_form_button(objectP, objID, objType);
+				_load_form_button(objectP, objID, objType);
 				break;
 			case 'tCBX':
-				*objectP++ = 0;
 //				load_form_checkbox(objectP, objID, objType);
 				break;
 			case 'tFBM':
-				*objectP++ = 0;
 //				load_form_bitmap(objectP, objID, objType);
 				break;
 			case 'tFLD':
-				*objectP++ = 0;
 //				load_form_field(objectP, objID, objType);
 				break;
 			case 'tGDT':
-				*objectP++ = 0;
 //				load_form_gadget(objectP, objID, objType);
 				break;
 			case 'tGSI':
-				*objectP++ = 0;
 //				load_form_graffiti_shift_indicator(objectP, objID, objType);
 				break;
 			case 'tLBL':
-				*objectP++ = 0;
 //				load_form_label(objectP, objID, objType);
 				break;
 			case 'tLST':
-				*objectP++ = 0;
 //				load_form_list(objectP, objID, objType);
 				break;
 			case 'tPBN':
-				*objectP++ = 0;
 //				load_form_push_button(objectP, objID, objType);
 				break;
 			case 'tPUT':
-				*objectP++ = 0;
 //				load_form_popup_trigger(objectP, objID, objType);
 				break;
 			case 'tREP':
-				*objectP++ = 0;
 //				load_form_repeating_button(objectP, objID, objType);
 				break;
 			case 'tSCL':
-				*objectP++ = 0;
 //				load_form_scrollbar(objectP, objID, objType);
 				break;
 			case 'tSLT':
-				*objectP++ = 0;
 //				load_form_selector_trigger(objectP, objID, objType);
 				break;
 			case 'tTBL':
-				*objectP++ = 0;
 //				load_form_table(objectP, objID, objType);
 				break;
 			case 'tTTL':
-				*objectP++ = 0;
-//				load_form_tittle(objectP, objID, objType);
+				_load_form_tittle(objectP, objID, objType);
 				break;
 			default:
 				LOGu(objID);
@@ -171,13 +223,17 @@ FormType* FrmInitForm(UInt16 rscID)
 		}
 	}
 
+	LOG();
+
 	/* **** */
 
 	_WinCreateWindow(&formP->window, bounds, simpleFrame, fw->windowFlags.modal, true);
 //	WinAddWindow(&formP->window);
 
+	formP->attr.usable = 1;
+
 	MemHandleUnlock(h2fr);
-	MemHandleFree(h2fr);
+	DmReleaseResource(h2fr);
 
 	return(formP);
 }
