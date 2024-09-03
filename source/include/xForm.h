@@ -15,6 +15,10 @@
 
 /* **** */
 
+typedef struct FormLabelTag* FormLabelTypePtr;
+typedef struct FormObjListTag* FormObjListTypePtr;
+typedef struct FormTitleTag* FormTitleTypePtr;
+
 #ifndef ALLOW_ACCESS_TO_INTERNALS_OF_FORMS
 //	typedef struct FormAttrType* FormAttrPtr;
 	typedef struct FormAttrTag {
@@ -35,9 +39,14 @@
 		Char* text;
 	}FormLabelType;
 
-	typedef struct FormObjListTag* FormObjListTypePtr;
+	typedef struct FormTitleTag {
+		RectangleType rect;
+		Char* text;
+	}FormTitleType;
+
 	typedef struct FormObjListTag {
 		FormObjectKind objectType;
+		FormObjectType object;
 		FormObjListTypePtr next;
 	}FormObjListType;
 

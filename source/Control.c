@@ -4,12 +4,34 @@
 
 /* **** */
 
+#include "git/libbse/include/err_test.h"
 #include "git/libbse/include/log.h"
 //#include "git/libbse/include/unused.h"
 
 /* **** */
 
 #include <assert.h>
+#include <stdlib.h>
+#include <string.h>
+
+/* **** */
+
+ControlPtr _CtlNewFormButtonControl(ControlPtr const srcCtlP, Boolean usable, Boolean leftAnchor,
+	ButtonFrameType frame, Boolean nonBoldFrame)
+{
+	PEDANTIC(assert(srcCtlP));
+
+	ControlPtr ctlP = calloc(1, sizeof(ControlType));
+	ERR_NULL(ctlP);
+
+	memcpy(ctlP, srcCtlP, sizeof(ControlType));
+
+	ctlP->attr.usable = usable;
+	ctlP->attr.leftAnchor = leftAnchor;
+	ctlP->attr.frame = frame ? (nonBoldFrame ? standardButtonFrame : boldButtonFrame) : noButtonFrame;
+
+	return(ctlP);
+}
 
 /* **** */
 

@@ -11,3 +11,6 @@
 /* **** */
 
 #include "Control.h"
+
+ControlPtr _CtlNewFormButtonControl(ControlPtr const ctlP, Boolean usable, Boolean leftAnchor,
+	ButtonFrameType frame, Boolean nonBoldFrame);
