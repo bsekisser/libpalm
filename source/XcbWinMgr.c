@@ -28,12 +28,15 @@ pxcb_manager_t pxcb_manager;
 __attribute__((constructor))
 static void __xcb_manager_globals_init(void)
 {
-	LOG();
+	AT_INIT(LOG());
 
 	memset(&pxcb_manager, 0, sizeof(pxcb_manager_t));
 }
 
 /* **** */
+
+static WinHandle _XcbPalmWindow(pxcb_window_p xw)
+{ return(xw ? xw->palm.window : 0); }
 
 static void _XcbRemoveWindow(pxcb_window_p xw, pxcb_window_p lhs)
 {
@@ -72,6 +75,8 @@ void XcbAddWindow(pxcb_window_p xw)
 {
 	PEDANTIC(assert(xw));
 
+	if(!xw) return;
+
 	xw->nextWindow = pxcb_manager.firstWindow;
 	pxcb_manager.firstWindow = xw;
 }
@@ -80,6 +85,8 @@ pxcb_window_p XcbCreateWindow(WinPtr const windowP, const RectangleType* windowB
 {
 	PEDANTIC(assert(windowP));
 	PEDANTIC(assert(windowBounds));
+
+	if(!(windowP && windowBounds)) return(0);
 
 	if(!pxcb_manager.connection) {
 		pxcb_manager.connection = xcb_connect(NULL, NULL);
@@ -104,16 +111,11 @@ pxcb_window_p XcbCreateWindow(WinPtr const windowP, const RectangleType* windowB
 
 	xw->palm.window = windowP;
 
-/*
-	xw->gc = xcb_generate_id(pxcb_manager.connection);
-//	uint32_t mask = XCB_GC_FOREGROUND | XCB_GC_GRAPHICS_EXPOSURES;
-	mask = XCB_GC_FOREGROUND | XCB_GC_BACKGROUND;
-	valueP = values;
-	*valueP++ = pxcb_manager.screen->white_pixel;
+	xw->foreground = xcb_generate_id(pxcb_manager.connection);
+	mask = XCB_GC_FOREGROUND;
 	*valueP++ = pxcb_manager.screen->black_pixel;
 
-	xcb_create_gc(pxcb_manager.connection, xw->gc, pxcb_manager.screen->root, mask, values);
-*/
+	xcb_create_gc(pxcb_manager.connection, xw->foreground, pxcb_manager.screen->root, mask, values);
 
 	xw->window = xcb_generate_id(pxcb_manager.connection);
 	mask =
@@ -135,8 +137,7 @@ pxcb_window_p XcbCreateWindow(WinPtr const windowP, const RectangleType* windowB
 		windowBounds->extent.x, windowBounds->extent.y,
 		frameWidth,
 		XCB_WINDOW_CLASS_INPUT_OUTPUT,
-		0,
-//		pxcb_manager.screen->root_visual,
+		pxcb_manager.screen->root_visual,
 		mask, &values);
 
 	XcbAddWindow(xw);
@@ -156,6 +157,8 @@ pxcb_window_p XcbDrawWindow_start(WinPtr windowP)
 {
 	PEDANTIC(assert(windowP));
 
+	if(!windowP) return(0);
+
 	pxcb_window_p xw = 0;
 
 	(void)_XcbWinHandle(windowP, &xw, 0);
@@ -169,6 +172,8 @@ pxcb_window_p XcbDrawWindow_start(WinPtr windowP)
 void XcbWinDeleteWindow(WinHandle winHandle, Boolean eraseIt)
 {
 	PEDANTIC(assert(winHandle));
+
+	if(!winHandle) return;
 
 	pxcb_window_p xw = 0, lhs = 0;
 
@@ -229,26 +234,13 @@ void XcbWinEraseRectangle(const RectangleType* rP, UInt16 cornerDiam)
 }
 
 WinHandle XcbWinGetActiveWindow(void)
-{
-	pxcb_window_p xw = pxcb_manager.activeWindow;
-
-	return(xw ? xw->palm.window : 0);
-}
+{ return(_XcbPalmWindow(pxcb_manager.activeWindow)); }
 
 WinHandle XcbWinGetDrawWindow(void)
-{
-	pxcb_window_p xw = pxcb_manager.drawWindow;
-
-	return(xw ? xw->palm.window : 0);
-}
+{ return(_XcbPalmWindow(pxcb_manager.drawWindow)); }
 
 WinPtr XcbWinGetFirstWindow(void)
-{
-	pxcb_window_p xw = pxcb_manager.firstWindow;
-
-	return(xw ? xw->palm.window : 0);
-}
-
+{ return(_XcbPalmWindow(pxcb_manager.firstWindow)); }
 
 WinPtr XcbWinGetNextWindow(WinPtr windowP)
 {
@@ -258,11 +250,15 @@ WinPtr XcbWinGetNextWindow(WinPtr windowP)
 
 	pxcb_window_p nextWindow = xw ? xw->nextWindow : 0;
 
-	return(nextWindow ? nextWindow->palm.window : 0);
+	return(_XcbPalmWindow(nextWindow));
 }
 
 void XcbWinRemoveWindow(WinHandle h2window)
 {
+	PEDANTIC(assert(h2window));
+
+	if(!h2window) return;
+
 	pxcb_window_p xw = 0, lhs = 0;
 
 	(void)_XcbWinHandle(h2window, &xw, &lhs);
