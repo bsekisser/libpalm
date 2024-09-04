@@ -21,7 +21,8 @@ typedef struct pxcb_window_t {
 		WinHandle window;
 	}palm;
 
-//	xcb_drawable_t gc;
+	xcb_drawable_t foreground;
+
 	pxcb_window_p nextWindow;
 	xcb_window_t window;
 }pxcb_window_t;
