@@ -174,7 +174,7 @@ FormType* FrmInitForm(UInt16 rscID)
 	/* **** */
 
 	_WinCreateWindow(&formP->window, bounds, simpleFrame, fw->windowFlags.modal, true);
-	WinAddWindow(&formP->window);
+//	WinAddWindow(&formP->window);
 
 	MemHandleUnlock(h2fr);
 	MemHandleFree(h2fr);

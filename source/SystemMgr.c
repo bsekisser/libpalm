@@ -22,17 +22,6 @@ Boolean SysHandleEvent(EventPtr eventP)
 {
 	PEDANTIC(assert(eventP));
 
-#if 0
-	static unsigned nilCount = 0;
-
-	if(nilEvent == eventP->eType)
-		nilCount++;
-	else
-		nilCount = 0;
-
-	assert(16 > nilCount);
-#endif
-
 	switch(eventP->eType)
 	{
 		case sysEventAppStopEvent:
@@ -46,10 +35,6 @@ Boolean SysHandleEvent(EventPtr eventP)
 		case sysEventKeyUpEvent:
 			break;
 		case sysEventNilEvent:
-#if 0
-			nilCount++;
-			assert(16 > nilCount);
-#endif
 			return(true);
 		case sysEventPenDownEvent:
 		case sysEventPenMoveEvent:
@@ -59,23 +44,9 @@ Boolean SysHandleEvent(EventPtr eventP)
 		case sysEventTsmFepButtonEvent:
 		case sysEventTsmFepModeEvent:
 			break;
-		case sysEventWinEnterEvent: {
-			WinPtr enterWindow = eventP->data.winEnter.enterWindow;
-			window_manager.enterWindowID = 0;
-			window_manager.exitedWindowID = 0;
-
-			window_manager.activeWindow = enterWindow;
-			(void)WinSetDrawWindow(enterWindow);
-
-			if(enterWindow->windowFlags.dialog)
-				LOG_ACTION(current_form = (FormPtr)enterWindow);
-
-			return(true);
-		}break;
+		case sysEventWinEnterEvent:
 		case sysEventWinExitEvent:
-			window_manager.exitedWindowID = eventP->data.winExit.exitWindow;
-			window_manager.exitWindowID = 0;
-			break;
+			return(WinHandleEvent(eventP));
 		default:
 			return(false);
 	}
