@@ -172,11 +172,7 @@ void WinEraseRectangle(const RectangleType* rP, UInt16 cornerDiam)
 {
 	PEDANTIC(assert(rP));
 
-	LOG("TODO"); return;
-
-	if(!rP) return;
-
-	UNUSED(rP, cornerDiam);
+	XcbWinEraseRectangle(rP, cornerDiam);
 }
 
 WinHandle WinGetActiveWindow(void)

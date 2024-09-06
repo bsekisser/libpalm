@@ -21,7 +21,7 @@ typedef struct pxcb_window_t {
 		WinHandle window;
 	}palm;
 
-	xcb_drawable_t foreground;
+//	xcb_drawable_t gc;
 	pxcb_window_p nextWindow;
 	xcb_window_t window;
 }pxcb_window_t;
@@ -45,6 +45,7 @@ pxcb_window_p XcbCreateWindow(WinPtr const windowP, const RectangleType* windowB
 void XcbDrawWindow_end(pxcb_window_p xwP);
 pxcb_window_p XcbDrawWindow_start(WinPtr windowP);
 void XcbWinDeleteWindow(WinHandle winHandle, Boolean eraseIt);
+void XcbWinEraseRectangle(const RectangleType* rP, UInt16 cornerDiam);
 WinHandle XcbWinGetActiveWindow(void);
 WinHandle XcbWinGetDrawWindow(void);
 WinPtr XcbWinGetFirstWindow(void);
