@@ -11,6 +11,7 @@
 
 #include "git/libbse/include/err_test.h"
 #include "git/libbse/include/log.h"
+#include "git/libbse/include/unused.h"
 
 /* **** */
 
@@ -67,7 +68,6 @@ static pxcb_window_p _XcbWindow(const xcb_window_t xwt, pxcb_window_h h2lhs)
 
 	return(0);
 }
-
 
 static WinPtr _XcbWinHandle(WinHandle const wh, pxcb_window_h h2xw, pxcb_window_h h2lhs)
 {
@@ -248,10 +248,11 @@ void XcbExpose(xcb_window_t xwt)
 
 	pxcb_window_p xw = _XcbWindow(xwt, 0);
 
-//	xw->flags.exposed = 1;
+if(0) {
+	xw->flags.exposed = 1;
 
-//	_WinSetVisible(xw->palm.window, 1);
-}
+	_WinSetVisible(xw->palm.window, 1);
+}}
 
 void XcbWinDeleteWindow(WinHandle winHandle, Boolean eraseIt)
 {
@@ -310,6 +311,19 @@ failConnectionExit:
 	_XcbRemoveWindow(xw, lhs);
 
 	free(xw);
+}
+
+void XcbWinDrawChars(const Char* chars, Int16 len, Coord x, Coord y)
+{
+	xcb_void_cookie_t cookie;
+	xcb_generic_error_t* error;
+
+	xcb_connection_p connection = pxcb_manager.connection;
+	xcb_window_t drawWindow = pxcb_manager.drawWindow->window;
+
+	LOG("TODO"); UNUSED(cookie, error, connection, drawWindow, chars, len, x, y);
+
+	xcb_flush(connection);
 }
 
 void XcbWinEraseRectangle(const RectangleType* rP, UInt16 cornerDiam)

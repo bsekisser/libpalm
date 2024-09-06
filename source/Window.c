@@ -135,11 +135,9 @@ void WinDrawChars(const Char* chars, Int16 len,
 {
 	PEDANTIC(assert(chars));
 
-	LOG("TODO"); return;
-
 	if(!chars) return;
 
-	UNUSED(len, x, y);
+	XcbWinDrawChars(chars, len, x, y);
 }
 
 void WinDrawLine(Coord x1, Coord y1, Coord x2, Coord y2)

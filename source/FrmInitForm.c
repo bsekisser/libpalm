@@ -1,5 +1,6 @@
 #include "config.h"
 
+#include "xWindow.h"
 #include "xControl.h"
 #include "xForm.h"
 

@@ -20,13 +20,13 @@ typedef struct pxcb_window_t {
 	struct {
 		WinHandle window;
 	}palm;
-/*
+
 	union {
 		struct {
 			unsigned exposed:1;
 		};
 	}flags;
-*/
+
 	xcb_gcontext_t background;
 	xcb_gcontext_t foreground;
 
@@ -54,6 +54,7 @@ void XcbDrawWindow_end(pxcb_window_p xwP);
 pxcb_window_p XcbDrawWindow_start(WinPtr windowP);
 void XcbExpose(xcb_window_t xwt);
 void XcbWinDeleteWindow(WinHandle winHandle, Boolean eraseIt);
+void XcbWinDrawChars(const Char* chars, Int16 len, Coord x, Coord y);
 void XcbWinEraseRectangle(const RectangleType* rP, UInt16 cornerDiam);
 WinHandle XcbWinGetActiveWindow(void);
 WinHandle XcbWinGetDrawWindow(void);
