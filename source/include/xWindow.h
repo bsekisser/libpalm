@@ -37,6 +37,10 @@ void _WinSetClip(WinPtr windowP, const RectangleType* rP);
 
 /* **** */
 
+void _WinSetVisible(WinHandle winHandle, Boolean visible);
+
+/* **** */
+
 void WindowMgrInit(void);
 void WinDrawWindow(WinPtr const windowP);
 WinPtr WinGetNextWindow(WinPtr windowP);

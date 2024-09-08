@@ -21,6 +21,7 @@ INCLUDE += -I$(PALM-SDK-INCLUDE)/Core/System
 INCLUDE += -I$(PALM-SDK-INCLUDE)/Core/UI
 INCLUDE += -I$(PALM-SDK-INCLUDE)/Dynamic
 INCLUDE += -I$(PALM-SDK-INCLUDE)/Libraries
+INCLUDE += -include config.h
 
 LDFLAGS += -shared
 

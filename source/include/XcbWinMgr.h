@@ -20,8 +20,15 @@ typedef struct pxcb_window_t {
 	struct {
 		WinHandle window;
 	}palm;
-
-	xcb_drawable_t foreground;
+/*
+	union {
+		struct {
+			unsigned exposed:1;
+		};
+	}flags;
+*/
+	xcb_gcontext_t background;
+	xcb_gcontext_t foreground;
 
 	pxcb_window_p nextWindow;
 	xcb_window_t window;
@@ -45,6 +52,7 @@ extern pxcb_manager_t pxcb_manager;
 pxcb_window_p XcbCreateWindow(WinPtr const windowP, const RectangleType* windowBounds, UInt8 frameWidth);
 void XcbDrawWindow_end(pxcb_window_p xwP);
 pxcb_window_p XcbDrawWindow_start(WinPtr windowP);
+void XcbExpose(xcb_window_t xwt);
 void XcbWinDeleteWindow(WinHandle winHandle, Boolean eraseIt);
 void XcbWinEraseRectangle(const RectangleType* rP, UInt16 cornerDiam);
 WinHandle XcbWinGetActiveWindow(void);

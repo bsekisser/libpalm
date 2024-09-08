@@ -50,8 +50,29 @@ static void _XcbRemoveWindow(pxcb_window_p xw, pxcb_window_p lhs)
 		pxcb_manager.firstWindow = xw->nextWindow;
 }
 
+static pxcb_window_p _XcbWindow(const xcb_window_t xwt, pxcb_window_h h2lhs)
+{
+	PEDANTIC(assert(xwt));
+
+	pxcb_window_p xw = pxcb_manager.firstWindow;
+
+	while(xw) {
+		if(xwt == xw->window)
+			return(xw);
+
+		if(h2lhs) *h2lhs = xw;
+
+		xw = xw->nextWindow;
+	}
+
+	return(0);
+}
+
+
 static WinPtr _XcbWinHandle(WinHandle const wh, pxcb_window_h h2xw, pxcb_window_h h2lhs)
 {
+	PEDANTIC(assert(wh));
+
 	pxcb_window_p xw = pxcb_manager.firstWindow;
 
 	while(xw) {
@@ -100,8 +121,15 @@ pxcb_window_p XcbCreateWindow(WinPtr const windowP, const RectangleType* windowB
 				xcb_get_setup(pxcb_manager.connection)).data;
 
 			PEDANTIC(assert(pxcb_manager.screen));
+
+			if(!pxcb_manager.screen) return(0);
 		}
 	}
+
+	xcb_connection_p connection = pxcb_manager.connection;
+	xcb_void_cookie_t cookie;
+	xcb_generic_error_t* error = 0;
+	xcb_screen_p screen = pxcb_manager.screen;
 
 	uint32_t mask;
 	uint32_t values[9], *valueP = values;
@@ -111,34 +139,72 @@ pxcb_window_p XcbCreateWindow(WinPtr const windowP, const RectangleType* windowB
 
 	xw->palm.window = windowP;
 
-	xw->foreground = xcb_generate_id(pxcb_manager.connection);
-	mask = XCB_GC_FOREGROUND;
-	*valueP++ = pxcb_manager.screen->black_pixel;
+	/* **** create the x window */
 
-	xcb_create_gc(pxcb_manager.connection, xw->foreground, pxcb_manager.screen->root, mask, values);
-
-	xw->window = xcb_generate_id(pxcb_manager.connection);
+	xw->window = xcb_generate_id(connection);
 	mask =
-		XCB_CW_BACK_PIXEL
-		| XCB_CW_SAVE_UNDER
-		| XCB_CW_EVENT_MASK;
+		XCB_CW_BACK_PIXEL |
+		XCB_CW_SAVE_UNDER |
+		XCB_CW_EVENT_MASK;
 	valueP = values;
-	*valueP++ = pxcb_manager.screen->white_pixel;
+	*valueP++ = screen->white_pixel;
 	*valueP++ = 1;
-	*valueP++ =	XCB_EVENT_MASK_BUTTON_PRESS	| XCB_EVENT_MASK_KEY_RELEASE;
+	*valueP++ =
+		XCB_EVENT_MASK_BUTTON_PRESS |
+		XCB_EVENT_MASK_KEY_RELEASE;
+//		XCB_EVENT_MASK_EXPOSURE;
 
-	LOG_RECTANGLE(windowBounds);
-
-	xcb_create_window(pxcb_manager.connection,
-		XCB_COPY_FROM_PARENT,
+	cookie = xcb_create_window_checked(connection,
+		screen->root_depth, //XCB_COPY_FROM_PARENT,
 		xw->window,
-		pxcb_manager.screen->root,
+		screen->root,
 		windowBounds->topLeft.x, windowBounds->topLeft.y,
 		windowBounds->extent.x, windowBounds->extent.y,
 		frameWidth,
 		XCB_WINDOW_CLASS_INPUT_OUTPUT,
-		pxcb_manager.screen->root_visual,
+		screen->root_visual,
 		mask, &values);
+
+	if((error = xcb_request_check(connection, cookie))) {
+		LOG("unable to create window: %d", error->error_code);
+		xcb_disconnect(connection);
+		exit(-1);
+	}
+
+	/* **** foreground */
+
+	xw->foreground = xcb_generate_id(connection);
+	mask = XCB_GC_FOREGROUND /* | XCB_GC_FONT */;
+	valueP = values;
+	*valueP++ = screen->white_pixel;
+//	*valueP++ = fontID;
+
+	cookie = xcb_create_gc_checked(connection, xw->foreground, xw->window, mask, values);
+
+	if((error = xcb_request_check(connection, cookie))) {
+		LOG("unable to create foreground graphic context: %d", error->error_code);
+		xcb_disconnect(connection);
+		exit(-1);
+	}
+
+	/* **** background */
+
+	xw->background = xcb_generate_id(connection);
+	mask = XCB_GC_BACKGROUND;
+	valueP = values;
+	*valueP++ = screen->black_pixel;
+
+	cookie = xcb_create_gc_checked(connection, xw->background, xw->window, mask, values);
+
+	if((error = xcb_request_check(connection, cookie))) {
+		LOG("unable to create background graphic context: %d", error->error_code);
+		xcb_disconnect(connection);
+		exit(-1);
+	}
+
+	/* **** */
+
+	xcb_flush(connection);
 
 	XcbAddWindow(xw);
 
@@ -163,10 +229,28 @@ pxcb_window_p XcbDrawWindow_start(WinPtr windowP)
 
 	(void)_XcbWinHandle(windowP, &xw, 0);
 
-	if(pxcb_manager.connection)
-		xcb_map_window(pxcb_manager.connection, xw->window);
+	xcb_void_cookie_t cookie = xcb_map_window_checked(pxcb_manager.connection, xw->window);
+
+	xcb_generic_error_t* error = 0;
+
+	if((error = xcb_request_check(pxcb_manager.connection, cookie))) {
+		LOG("unable to map window: %d", error->error_code);
+		xcb_disconnect(pxcb_manager.connection);
+		exit(-1);
+	}
 
 	return(xw);
+}
+
+void XcbExpose(xcb_window_t xwt)
+{
+	PEDANTIC(assert(xwt));
+
+	pxcb_window_p xw = _XcbWindow(xwt, 0);
+
+//	xw->flags.exposed = 1;
+
+//	_WinSetVisible(xw->palm.window, 1);
 }
 
 void XcbWinDeleteWindow(WinHandle winHandle, Boolean eraseIt)
@@ -179,12 +263,50 @@ void XcbWinDeleteWindow(WinHandle winHandle, Boolean eraseIt)
 
 	(void)_XcbWinHandle(winHandle, &xw, &lhs);
 
+//	LOG("flag.exposed: %u", xw->flags.exposed);
+
 	if(eraseIt)
 		LOG("TODO: eraseIt");
 
-	if(pxcb_manager.connection)
-		xcb_unmap_window(pxcb_manager.connection, xw->window);
+	if(!pxcb_manager.connection) goto failConnectionExit;
 
+	xcb_connection_p connection = pxcb_manager.connection;
+	xcb_void_cookie_t cookie;
+	xcb_generic_error_t* error = 0;
+
+	if(1 || xw->window) {
+		cookie = xcb_unmap_window_checked(connection, xw->window);
+
+		if((error = xcb_request_check(connection, cookie))) {
+			LOG("unable to unmap window: %d", error->error_code);
+			xcb_disconnect(connection);
+			exit(-1);
+		}
+	}
+
+	if(1 || xw->foreground) {
+		cookie = xcb_free_gc_checked(connection, xw->foreground);
+
+		if((error = xcb_request_check(connection, cookie))) {
+			LOG("unable to free foreground context: %d", error->error_code);
+			xcb_disconnect(connection);
+			exit(-1);
+		}
+	}
+
+	if(1 || xw->background) {
+		cookie = xcb_free_gc_checked(connection, xw->background);
+
+		if((error = xcb_request_check(connection, cookie))) {
+			LOG("unable to free background context: %d", error->error_code);
+			xcb_disconnect(connection);
+			exit(-1);
+		}
+	}
+
+	xcb_flush(connection);
+
+failConnectionExit:
 	_XcbRemoveWindow(xw, lhs);
 
 	free(xw);
@@ -244,6 +366,8 @@ WinPtr XcbWinGetFirstWindow(void)
 
 WinPtr XcbWinGetNextWindow(WinPtr windowP)
 {
+	PEDANTIC(assert(windowP));
+
 	pxcb_window_p xw = 0;
 
 	(void)_XcbWinHandle(windowP, &xw, 0);
@@ -265,7 +389,6 @@ void XcbWinRemoveWindow(WinHandle h2window)
 
 	_XcbRemoveWindow(xw, lhs);
 }
-
 
 WinPtr XcbWinSetActiveWindow(WinHandle winHandle)
 {
