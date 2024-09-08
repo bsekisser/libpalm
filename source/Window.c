@@ -79,6 +79,13 @@ void _WinSetClip(WinPtr windowP, const RectangleType* rP)
 	windowP->clippingBounds.right = rP ? rP->topLeft.y + rP->extent.y : 0;
 }
 
+void _WinSetVisible(WinHandle winHandle, Boolean visible)
+{
+	WinPtr theWindow = winHandle;
+
+	theWindow->windowFlags.visible = visible;
+}
+
 /* **** */
 
 WinHandle WinCreateWindow(const RectangleType* bounds, FrameType frame,
