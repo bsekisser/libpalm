@@ -293,7 +293,13 @@ void WinRemoveWindow(WinHandle h2window) // system use function
 }
 
 void WinResetClip(void)
-{ LOG("TODO"); return; }
+{
+	WinPtr drawWindow = window_manager.drawWindow;
+
+	if(!drawWindow) return;
+
+	_WinSetClip(drawWindow, &drawWindow->windowBounds);
+}
 
 Err WinScreenMode(const WinScreenModeOperation operation,
 	UInt32 *const widthP, UInt32 *const heightP, UInt32 *const depthP,
