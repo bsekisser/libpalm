@@ -8,8 +8,41 @@
 
 /* **** */
 
+#include "git/libbse/include/log.h"
+
+/* **** */
+
 #include <assert.h>
 #include <string.h>
+
+/* **** */
+
+void __rect_log_point(const PointType* ptP, const char* name,
+	const char* func, const unsigned line)
+{
+	PEDANTIC(assert(ptP));
+
+	printf("%s:%04u: ", func, line);
+
+	LOG_END("%s->x: %u, %s->y: %u",
+		name, ptP->x,
+		name, ptP->y);
+}
+
+void __rect_log_rectangle(const RectangleType* rP, const char* name,
+	const char* func, const unsigned line)
+{
+	PEDANTIC(assert(rP));
+
+	printf("%s:%04u: ", func, line);
+
+	_LOG_("%s->topLeft.x: %u, %s->topLeft.y: %u",
+		name, rP->topLeft.x,
+		name, rP->topLeft.y);
+	LOG_END(", %s->extent.x: %u, %s->extent.y: %u",
+		name, rP->extent.x,
+		name, rP->extent.y);
+}
 
 /* **** */
 

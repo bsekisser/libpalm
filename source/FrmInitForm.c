@@ -5,6 +5,7 @@
 /* **** */
 
 #include "UIResources.h"
+#include "xRect.h"
 
 /* **** */
 
@@ -69,10 +70,7 @@ FormType* FrmInitForm(UInt16 rscID)
 	p += 2; p += 2;
 
 	if(config.info.form.initForm) {
-		LOGu(bounds->topLeft.x);
-		LOGu(bounds->topLeft.y);
-		LOGu(bounds->extent.x);
-		LOGu(bounds->extent.y);
+		LOG_RECTANGLE(bounds);
 		LOGu(f.formId);
 		LOGu(f.helpRscId);
 		LOGu(f.menuRscId);
