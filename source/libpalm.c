@@ -18,8 +18,23 @@
 
 /* **** */
 
+config_t config = {
+//	.at.raw_flags = ~0U,
+	.debug = 1,
+};
+
+/* **** */
+
+__attribute__((constructor))
+void __main_init(void)
+{
+	AT_INIT(LOG());
+}
+
 int main(int argc, char** argv)
 {
+//	DEBUG(LOGzu(sizeof(config_t)));
+
 //	xcb_connection_t* xc = xcb_connect(0, 0);
 
 	/* **** */

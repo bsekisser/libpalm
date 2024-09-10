@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include "xControl.h"
 
 /* **** */
@@ -7,8 +9,14 @@
 
 /* **** */
 
+#include <assert.h>
+
+/* **** */
+
 void CtlDrawControl(ControlType* controlP)
 {
+	PEDANTIC(assert(controlP));
+
 	LOG("TODO");
 
 	if(!controlP) return;
@@ -18,6 +26,8 @@ void CtlDrawControl(ControlType* controlP)
 
 Int16 CtlGetValue(const ControlType* controlP)
 {
+	PEDANTIC(assert(controlP));
+
 	if(!controlP) return(0);
 
 	switch(controlP->style) {
@@ -33,6 +43,8 @@ Int16 CtlGetValue(const ControlType* controlP)
 
 void CtlSetLabel(ControlType* controlP, const Char* newLabel)
 {
+	PEDANTIC(assert(controlP));
+
 	if(!controlP) return;
 
 	if(controlP->attr.graphical)
@@ -54,6 +66,8 @@ void CtlSetLabel(ControlType* controlP, const Char* newLabel)
 
 void CtlSetUsable(ControlType* controlP, Boolean usable)
 {
+	PEDANTIC(assert(controlP));
+
 	if(!controlP) return;
 
 	controlP->attr.usable = usable;
@@ -61,6 +75,8 @@ void CtlSetUsable(ControlType* controlP, Boolean usable)
 
 void CtlSetValue(ControlType* controlP, Int16 newValue)
 {
+	PEDANTIC(assert(controlP));
+
 	if(!controlP) return;
 
 	switch(controlP->style) {
@@ -79,6 +95,8 @@ void CtlSetValue(ControlType* controlP, Int16 newValue)
 
 void CtlShowControl(ControlType* controlP)
 {
+	PEDANTIC(assert(controlP));
+
 	CtlSetUsable(controlP, true);
 	CtlDrawControl(controlP);
 }

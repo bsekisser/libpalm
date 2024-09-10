@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include "xEvent.h"
 #include "xWindow.h"
 
@@ -75,6 +77,8 @@
 
 void event_log_event(EventPtr const eventP)
 {
+	PEDANTIC(assert(eventP));
+
 	int eType = eventP->eType;
 
 	switch((int)eventP->eType) {
@@ -99,6 +103,8 @@ void event_log_event(EventPtr const eventP)
 
 static Boolean xcb_event(EventPtr const eventP)
 {
+	PEDANTIC(assert(eventP));
+
 	xcb_generic_event_t* e;
 	Boolean handled = 0;
 
@@ -147,6 +153,8 @@ static Boolean xcb_event(EventPtr const eventP)
 
 void EvtAddEventToQueue(const EventType *const eventP)
 {
+	PEDANTIC(assert(eventP));
+
 //	LOG_ACTION(event_log_event(eventP));
 
 if(0) {
@@ -174,7 +182,7 @@ if(0)
 
 void EvtGetEvent(EventType* eventP, Int32 timeout)
 {
-	assert(eventP);
+	PEDANTIC(assert(eventP));
 
 	if(window_manager.exitWindowID) {
 		eventP->eType = winExitEvent;

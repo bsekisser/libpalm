@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include "xMemoryMgr.h"
 
 /* **** */
@@ -11,6 +13,7 @@
 
 /* **** */
 
+#include <assert.h>
 #include <inttypes.h>
 #include <stdlib.h>
 #include <string.h>
@@ -27,6 +30,7 @@ if(0)	LOG("mpb: 0x%016" PRIxPTR, (uintptr_t)mpb);
 
 		for(unsigned x = 0; x < __master_pointer_block_entries__; x++) {
 			const master_pointer_p mp = &mpb->entry[x];
+			PEDANTIC(assert(mp));
 
 if(0)		LOG("mp: 0x%016" PRIxPTR, (uintptr_t)mp);
 
@@ -48,6 +52,8 @@ if(0) {
 
 			count++;
 		}
+
+		PEDANTIC(assert(mpb));
 
 		const master_pointer_block_p last_mpb = mpb;
 		mpb = mpb->next;
@@ -93,6 +99,8 @@ if(0)		LOG("mp: 0x%016" PRIxPTR, (uintptr_t)mp);
 
 Err MemHandleFree(MemHandle h)
 {
+	PEDANTIC(assert(h));
+
 	master_pointer_p mp = master_pointer_find_handle(h, 0);
 	if(!mp)
 		return(memErrInvalidParam);
@@ -108,6 +116,8 @@ Err MemHandleFree(MemHandle h)
 
 MemPtr MemHandleLock(MemHandle h)
 {
+	PEDANTIC(assert(h));
+
 	master_pointer_p mp = master_pointer_find_handle(h, 0);
 	if(!mp)
 		return(0);
@@ -129,6 +139,8 @@ MemHandle MemHandleNew(UInt32 size)
 
 Err MemHandleUnlock(MemHandle h)
 {
+	PEDANTIC(assert(h));
+
 	master_pointer_p mp = master_pointer_find_handle(h, 0);
 	if(!mp)
 		return(memErrInvalidParam);
@@ -142,11 +154,20 @@ Err MemHandleUnlock(MemHandle h)
 }
 
 Err MemMove(void* dst, const void* src, Int32 n)
-{ memmove(dst, src, n); return(0); }
+{
+	PEDANTIC(assert(dst));
+	PEDANTIC(assert(src));
+
+	memmove(dst, src, n); return(0);
+}
 
 Err MemPtrUnlock(MemPtr p)
 {
+	PEDANTIC(assert(p));
+
 	chunk_p chunk = (chunk_p)((void*)p - (void*)OFFSET_OF(chunk_p, p));
+
+	PEDANTIC(assert(chunk));
 
 	if(chunk->lockCount)
 		chunk->lockCount--;

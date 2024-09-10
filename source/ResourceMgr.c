@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include "xMemoryMgr.h"
 #include "xResourceMgr.h"
 
@@ -24,6 +26,9 @@
 
 static resource_data_p _resource_data(resource_reference_entry_p const rre, resource_map_p const map)
 {
+	PEDANTIC(assert(rre));
+	PEDANTIC(assert(map));
+
 	static resource_data_t rdt;
 
 	const uint32_t offset = map->header.data_offset
@@ -34,9 +39,11 @@ static resource_data_p _resource_data(resource_reference_entry_p const rre, reso
 	p = ldu32be(&rdt.size, p);
 	rdt.data = p;
 
-	LOG_START("data_offset: 0x%04x", rre->data_offset);
-	_LOG_(", file_offset: 0x%08x", offset);
-	LOG_END(", size: 0x%04x", rdt.size);
+	if(config.info.resource) {
+		LOG_START("data_offset: 0x%04x", rre->data_offset);
+		_LOG_(", file_offset: 0x%08x", offset);
+		LOG_END(", size: 0x%04x", rdt.size);
+	}
 
 	return(&rdt);
 }
@@ -44,6 +51,9 @@ static resource_data_p _resource_data(resource_reference_entry_p const rre, reso
 static resource_reference_entry_p _resource_reference_entry_for_id(const uint16_t resID,
 	resource_type_entry_p rte, resource_map_p map)
 {
+	PEDANTIC(assert(rte));
+	PEDANTIC(assert(map));
+
 	static resource_reference_entry_t rre;
 
 	const uint32_t offset = map->header.map_offset
@@ -52,8 +62,10 @@ static resource_reference_entry_p _resource_reference_entry_for_id(const uint16_
 
 	void* p = map->file_ref + offset;
 
-	LOG_START("id: %u", resID);
-	LOG_END(", offset: 0x%08x, p: 0x%016" PRIxPTR, offset, (uintptr_t)p);
+	if(config.info.resource) {
+		LOG_START("id: %u", resID);
+		LOG_END(", offset: 0x%08x, p: 0x%016" PRIxPTR, offset, (uintptr_t)p);
+	}
 
 	for(unsigned i = 0; i <= rte->count; i++) {
 		p = ldu16be(&rre.id, p);
@@ -63,7 +75,7 @@ static resource_reference_entry_p _resource_reference_entry_for_id(const uint16_
 		rre.data_offset = uint24be(&p);
 		p += 4; // reserved for handle to resource
 
-		if(1) {
+		if(config.info.resource) {
 			LOG_START("id: %u", rre.id);
 			_LOG_(", name_offset: 0x%04x", rre.name_offset);
 			_LOG_(", attributes: 0x%02x", rre.attributes);
@@ -79,6 +91,8 @@ static resource_reference_entry_p _resource_reference_entry_for_id(const uint16_
 
 static resource_type_entry_p _resource_type_entry_for_type(const uint32_t type, resource_map_p const map)
 {
+	PEDANTIC(assert(map));
+
 	static resource_type_entry_t rte;
 
 	const uint32_t offset = 2 + map->header.map_offset
@@ -88,8 +102,11 @@ static resource_type_entry_p _resource_type_entry_for_type(const uint32_t type, 
 	void* p = map->file_ref + offset;
 
 	const uint32_t type_string[2] = { htole32(be32toh(type)), 0 };
-	LOG_START("type: 0x%08x (%s)", type, (const char*)&type_string);
-	LOG_END(", offset: 0x%08x, p: 0x%016" PRIxPTR, offset, (uintptr_t)p);
+
+	if(config.info.resource) {
+		LOG_START("type: 0x%08x (%s)", type, (const char*)&type_string);
+		LOG_END(", offset: 0x%08x, p: 0x%016" PRIxPTR, offset, (uintptr_t)p);
+	}
 
 	for(unsigned i = 0; i <= map->num_types; i++) {
 		p = ldu32be(&rte.type, p);
@@ -98,7 +115,7 @@ static resource_type_entry_p _resource_type_entry_for_type(const uint32_t type, 
 
 		const uint32_t type_string[2] = { htole32(be32toh(rte.type)), 0 };
 
-		if(1) {
+		if(config.info.resource) {
 			LOG_START("type: 0x%08x (%s)", rte.type, (const char*)&type_string);
 			_LOG_(", count: 0x%04x", rte.count);
 			LOG_END(", ref_list_offset: 0x%04x", rte.ref_list_offset);
@@ -135,11 +152,15 @@ MemHandle resource_get(uint32_t type, uint16_t resID)
 
 MemHandle resource_get1(resource_map_h h2map, uint32_t type, uint16_t resID)
 {
-	assert(h2map);
+	PEDANTIC(assert(h2map));
+
+	if(!h2map) return(0);
 
 	MemHandle rmh = 0;
 	resource_map_p map = MemHandleLock((MemHandle)h2map);
-	assert(map);
+	PEDANTIC(assert(map));
+
+	if(!map) return(0);
 
 	// find type list element
 	resource_type_entry_p rte = _resource_type_entry_for_type(type, map);
@@ -154,9 +175,15 @@ MemHandle resource_get1(resource_map_h h2map, uint32_t type, uint16_t resID)
 	if(!rd) goto failExit;
 
 	rmh = MemHandleNew(rd->size);
-	MemPtr mhp = MemHandleLock(rmh);
+	PEDANTIC(assert(rmh));
 
-	memcpy(mhp, rd->data, rd->size);
+	if(!rmh) goto failExit;
+
+	MemPtr mhp = MemHandleLock(rmh);
+	PEDANTIC(assert(mhp));
+
+	if(mhp)
+		memcpy(mhp, rd->data, rd->size);
 
 failExit:
 	MemHandleUnlock((MemHandle)h2map);
@@ -166,6 +193,8 @@ failExit:
 
 static resource_header_p resource_header(resource_header_p rh, void *const rf, const off_t offset)
 {
+	PEDANTIC(assert(rf));
+
 	static resource_header_t srht;
 
 	if(!rh) rh = &srht;
@@ -177,19 +206,22 @@ static resource_header_p resource_header(resource_header_p rh, void *const rf, c
 	p = ldu32be(&rh->data_length, p);
 	p = ldu32be(&rh->map_length, p);
 
-	if(1) {
+	if(config.info.resource) {
 		LOG_START("data_offset: 0x%08x", rh->data_offset);
 		_LOG_(", map_offset: 0x%08x", rh->map_offset);
 		_LOG_(", data_length: 0x%08x", rh->data_length);
 		LOG_END(", map_length: 0x%08x", rh->map_length);
 	}
 
-
 	return(rh);
 }
 
 static unsigned resource_header_verify_copy(resource_header_p const header, resource_header_p const copy)
 {
+	PEDANTIC(assert(header));
+	PEDANTIC(assert(copy));
+	PEDANTIC(assert(header != copy));
+
 	const unsigned invalid = (header->data_length != copy->data_length)
 		|| (header->data_offset != copy->data_offset)
 		|| (header->map_length != copy->map_length)
@@ -200,6 +232,11 @@ static unsigned resource_header_verify_copy(resource_header_p const header, reso
 
 resource_map_h resource_map(resource_header_p const rh, void *const rf)
 {
+	PEDANTIC(assert(rh));
+	PEDANTIC(assert(rf));
+
+	if(!(rh && rf)) return(0);
+
 	off_t map_offset = rh->map_offset;
 
 	resource_header_p header_copy = resource_header(0, rf, map_offset);
@@ -207,6 +244,10 @@ resource_map_h resource_map(resource_header_p const rh, void *const rf)
 		return(0);
 
 	MemHandle h2map = MemHandleNew(sizeof(resource_map_t));
+	PEDANTIC(assert(h2map));
+
+	if(!h2map) return(0);
+
 	resource_map_p map = MemHandleLock(h2map);
 
 	memcpy(&map->header, rh, sizeof(resource_header_t));
@@ -225,7 +266,7 @@ resource_map_h resource_map(resource_header_p const rh, void *const rf)
 	p = ldu16be(&map->name_list_offset, p);
 	p = ldu16be(&map->num_types, p);
 
-	if(1) {
+	if(config.info.resource) {
 		LOG_START("attrigbutes: 0x%04x", map->attributes);
 		_LOG_(", type_list_offset: 0x%04x", map->type_list_offset);
 		_LOG_(", name_list_offset: 0x%04x", map->name_list_offset);
@@ -241,6 +282,10 @@ resource_map_h resource_map(resource_header_p const rh, void *const rf)
 
 int resource_open(const char* path)
 {
+	PEDANTIC(assert(path));
+
+	if(!path) return(-1);
+
 	int fd = open(path, O_RDONLY);
 	if(-1 == fd) {
 		perror("open");

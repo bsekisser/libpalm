@@ -1,10 +1,18 @@
+#include "config.h"
+
 #include "xWindow.h"
 #include "sdk/include/Libraries/PalmOSGlue/WinGlue.h"
 
 /* **** */
 
+#include <assert.h>
+
+/* **** */
+
 void WinGlueSetFrameType(WinHandle winH, FrameType frame)
 {
+	PEDANTIC(assert(winH));
+
 	WinPtr windowP = WinGetWindowPointer(winH);
 
 	windowP->frameType.word = 0;

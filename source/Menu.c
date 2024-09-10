@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include "Menu.h"
 
 #include "xEvent.h"
@@ -9,8 +11,14 @@
 
 /* **** */
 
+#include <assert.h>
+
+/* **** */
+
 void MenuEraseStatus(MenuBarType *menuP)
 {
+	PEDANTIC(assert(menuP));
+
 	LOG("TODO"); return;
 
 	UNUSED(menuP);
@@ -18,6 +26,10 @@ void MenuEraseStatus(MenuBarType *menuP)
 
 Boolean MenuHandleEvent(MenuBarType* menuP, EventType* eventP, UInt16* error)
 {
+	PEDANTIC(assert(menuP));
+	PEDANTIC(assert(eventP));
+	PEDANTIC(assert(error));
+
 	*error = -1;
 
 	switch(eventP->eType) {

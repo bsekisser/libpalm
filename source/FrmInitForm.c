@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include "xForm.h"
 
 /* **** */
@@ -15,6 +17,7 @@
 
 /* **** */
 
+#include <assert.h>
 #include <endian.h>
 #include <stdlib.h>
 #include <string.h>
@@ -36,7 +39,12 @@ FormType* FrmInitForm(UInt16 rscID)
 	fw->windowFlags.dialog = 1;
 
 	MemHandle h2fr = DmGetResource(formRscType, rscID);
+	PEDANTIC(assert(h2fr));
+
+	if(!h2fr) return(0);
+
 	MemPtr frd = MemHandleLock(h2fr);
+	PEDANTIC(assert(frd));
 
 	void* p = frd;
 
@@ -60,28 +68,30 @@ FormType* FrmInitForm(UInt16 rscID)
 
 	p += 2; p += 2;
 
-	if(1) {
-		LOGx("%u", bounds->topLeft.x);
-		LOGx("%u", bounds->topLeft.y);
-		LOGx("%u", bounds->extent.x);
-		LOGx("%u", bounds->extent.y);
-		LOGx("%u", f.formId);
-		LOGx("%u", f.helpRscId);
-		LOGx("%u", f.menuRscId);
-		LOGx("%u", f.defaultButton);
+	if(config.info.form.initForm) {
+		LOGu(bounds->topLeft.x);
+		LOGu(bounds->topLeft.y);
+		LOGu(bounds->extent.x);
+		LOGu(bounds->extent.y);
+		LOGu(f.formId);
+		LOGu(f.helpRscId);
+		LOGu(f.menuRscId);
+		LOGu(f.defaultButton);
 	}
 
 	p = ldu16be(&f.numObjects, p);
-	if(1)
-		LOGx("%u", f.numObjects);
+	if(config.info.form.initForm)
+		LOGu(f.numObjects);
 
 	const size_t objPtrAlloc = sizeof(f.objects) * f.numObjects;
 	const size_t formAlloc = sizeof(FormType) + objPtrAlloc;
 
 	FormPtr formP = calloc(1, formAlloc);
+	PEDANTIC(assert(formP));
+
 	memcpy(formP, &f, formAlloc);
 
-	void** objectP = &formP->objects;
+	void** objectP = (void*)&formP->objects;
 
 	for(unsigned i = 0; i < f.numObjects; i++)
 	{
@@ -156,7 +166,7 @@ FormType* FrmInitForm(UInt16 rscID)
 //				load_form_tittle(objectP, objID, objType);
 				break;
 			default:
-				LOGx("%u", objID);
+				LOGu(objID);
 				LOGx("0x%08x (%s)", objType, (char*)&objTypeString);
 				LOG_ACTION(exit(-1));
 				break;

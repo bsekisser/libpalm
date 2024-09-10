@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include "xForm.h"
 #include "xWindow.h"
 
@@ -12,6 +14,7 @@
 
 /* **** */
 
+#include <assert.h>
 #include <inttypes.h>
 #include <stdlib.h>
 #include <string.h>
@@ -20,6 +23,8 @@
 
 static int _event_form_id(EventPtr eventP)
 {
+	PEDANTIC(assert(eventP));
+
 	switch(eventP->eType) {
 		case frmCloseEvent:
 			return(eventP->data.frmClose.formID);
@@ -58,7 +63,12 @@ void FrmCloseAllForms(void)
 
 void FrmCopyLabel(FormType *const formP, const UInt16 labelID, const Char* newLabel)
 {
+	PEDANTIC(assert(formP));
+	PEDANTIC(assert(newLabel));
+
 	FormLabelType* labelP = (FormLabelType*)FrmGetObjectPtr(formP, labelID);
+
+	PEDANTIC(assert(labelP));
 
 	char* dst = strncpy(labelP->text, newLabel, labelP->reserved);
 	*dst = 0;
@@ -72,6 +82,8 @@ void FrmCopyLabel(FormType *const formP, const UInt16 labelID, const Char* newLa
 
 void FrmCopyTitle(FormType *const formP, const Char* newTitle)
 {
+	PEDANTIC(assert(formP));
+
 //	char* dst = strncpy(formP->title, newTitle, form->reserved);
 //	*dst = 0;
 
@@ -94,6 +106,8 @@ UInt16 FrmCustomAlert(UInt16 alertID,
 
 void FrmDeleteForm(FormType* formP)
 {
+	PEDANTIC(assert(formP));
+
 	for(unsigned x = 0; x < formP->numObjects; x++) {
 		FormObjListTypePtr formObject = &formP->objects[x];
 		if(!formObject) continue;
@@ -119,6 +133,8 @@ void FrmDeleteForm(FormType* formP)
 
 Boolean FrmDispatchEvent(EventPtr eventP)
 {
+	PEDANTIC(assert(eventP));
+
 	Boolean handled = false;
 
 	LOG_ACTION(event_log_event(eventP));
@@ -141,6 +157,8 @@ Boolean FrmDispatchEvent(EventPtr eventP)
 
 UInt16 FrmDoDialog(FormType* formP)
 {
+	PEDANTIC(assert(formP));
+
 	LOG("TODO"); return(0);
 
 	UNUSED(formP);
@@ -148,10 +166,12 @@ UInt16 FrmDoDialog(FormType* formP)
 
 void FrmDrawForm(FormType* formP)
 {
+	PEDANTIC(assert(formP));
+
 	WinPtr form_window = &formP->window;
 	WinPtr saved_draw_window = WinSetDrawWindow(form_window);
 
-	if(0) if(saved_draw_window != form_window) {
+	if(0) if(saved_draw_window && (saved_draw_window != form_window)) {
 		if(formP->attr.saveBehind)
 ;//			_FrmEraseForm(formP, true);
 	}
@@ -166,6 +186,8 @@ void FrmDrawForm(FormType* formP)
 FormType* FrmGetActiveForm(void)
 {
 	WinPtr windowP = WinGetActiveWindow();
+
+	if(!windowP) return(0);
 
 	return(windowP->windowFlags.dialog ? (FormPtr)windowP : 0);
 }
@@ -206,7 +228,7 @@ FormType* FrmGetFormPtr(const UInt16 formID)
 
 FormPtr FrmGetNextForm(FormPtr formP)
 {
-	WinPtr windowP = ((WinPtr)formP) ?: WinGetFirstWindow();
+	WinPtr windowP = ((WinPtr)formP) ? &formP->window : WinGetFirstWindow();
 
 	while(windowP) {
 		if(windowP->windowFlags.dialog)
@@ -220,6 +242,8 @@ FormPtr FrmGetNextForm(FormPtr formP)
 
 UInt16 FrmGetNumberOfObjects(const FormType* formP)
 {
+	PEDANTIC(assert(formP));
+
 	LOG("TODO"); return(0);
 
 	UNUSED(formP);
@@ -227,6 +251,8 @@ UInt16 FrmGetNumberOfObjects(const FormType* formP)
 
 UInt16 FrmGetObjectIndex(const FormType* formP, UInt16 objID)
 {
+	PEDANTIC(assert(formP));
+
 	LOG("TODO"); return(0);
 
 	UNUSED(formP, objID);
@@ -234,6 +260,8 @@ UInt16 FrmGetObjectIndex(const FormType* formP, UInt16 objID)
 
 UInt16 FrmGetObjectIndexFromPtr(const FormType* formP, void *const objP)
 {
+	PEDANTIC(assert(formP));
+
 	LOG("TODO");
 
 //	UInt16 objIndex = frmInvalidObjectId;
@@ -248,6 +276,8 @@ UInt16 FrmGetObjectIndexFromPtr(const FormType* formP, void *const objP)
 
 void* FrmGetObjectPtr(const FormType* formP, UInt16 objIndex)
 {
+	PEDANTIC(assert(formP));
+
 	LOG("TODO"); return(0);
 
 	UNUSED(formP, objIndex);
@@ -274,6 +304,9 @@ void FrmGotoForm(UInt16 formID)
 
 Boolean FrmHandleEvent(FormPtr formP, EventPtr eventP)
 {
+	PEDANTIC(assert(formP));
+	PEDANTIC(assert(eventP));
+
 	switch(eventP->eType) {
 		case ctlEnterEvent:
 		case ctlRepeatEvent:
@@ -332,6 +365,8 @@ void FrmHelp(UInt16 helpMsgID)
 
 void FrmHideObject(FormType* formP, UInt16 objIndex)
 {
+	PEDANTIC(assert(formP));
+
 	LOG("TODO"); return;
 
 	UNUSED(formP, objIndex);
@@ -344,6 +379,8 @@ void FrmSetActiveForm(FormType *const formP)
 
 void FrmSetEventHandler(FormType* formP, FormEventHandlerType* handler)
 {
+	PEDANTIC(assert(formP));
+
 	if(!formP) return;
 
 	formP->handler = handler;
@@ -351,6 +388,8 @@ void FrmSetEventHandler(FormType* formP, FormEventHandlerType* handler)
 
 void FrmSetFocus(FormType* formP, UInt16 fieldIndex)
 {
+	PEDANTIC(assert(formP));
+
 	formP->focus = fieldIndex;
 
 	LOG("TODO");
@@ -358,6 +397,8 @@ void FrmSetFocus(FormType* formP, UInt16 fieldIndex)
 
 void FrmSetMenu(FormType *const formP, const UInt16 menuRscID)
 {
+	PEDANTIC(assert(formP));
+
 	LOG("TODO"); return;
 
 	UNUSED(formP, menuRscID);
@@ -365,6 +406,8 @@ void FrmSetMenu(FormType *const formP, const UInt16 menuRscID)
 
 void FrmSetTitle(FormType *const formP, Char *const newTitle)
 {
+	PEDANTIC(assert(formP));
+
 //	formP->title = newTitle;
 
 	if(formP->attr.usable) {
@@ -378,6 +421,8 @@ void FrmSetTitle(FormType *const formP, Char *const newTitle)
 
 void FrmShowObject(FormType* formP, UInt16 objIndex)
 {
+	PEDANTIC(assert(formP));
+
 	LOG("TODO"); return;
 
 	UNUSED(formP, objIndex);

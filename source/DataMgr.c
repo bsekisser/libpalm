@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include "sdk/include/Core/System/DataMgr.h"
 
 /* **** */
@@ -13,6 +15,7 @@
 
 /* **** */
 
+#include <assert.h>
 #include <string.h>
 
 /* **** */
@@ -24,6 +27,8 @@ static Char* __mem_card; // TODO
 
 Boolean __DmDatabaseAttr(dmdb_p const db, const UInt16 attribute, Boolean *const p2set)
 {
+	PEDANTIC(assert(db));
+
 	Boolean wasSet = db->attributes & attribute;
 
 	if(p2set) {
@@ -41,6 +46,8 @@ dmdb_p __DmOpenDatabase(UInt16 card, LocalID dbID)
 
 Boolean __DmRecordAttr(dmdbrecord_p const dbr, const UInt16 attribute, Boolean *const p2set)
 {
+	PEDANTIC(assert(dbr));
+
 	Boolean wasSet = dbr->attributes & attribute;
 
 	if(p2set) {
@@ -55,6 +62,8 @@ Boolean __DmRecordAttr(dmdbrecord_p const dbr, const UInt16 attribute, Boolean *
 
 dmdbrecord_p __DmGetRecord(DmOpenRef dbP, UInt16 index)
 {
+	PEDANTIC(assert(dbP));
+
 	dmdbrecord_p2h dbr_l1 = ((dmdb_p)dbP)->record[index >> 8];
 	if(!dbr_l1)
 		return(__DmSetLastErr(dmErrIndexOutOfRange));
@@ -82,6 +91,8 @@ Boolean __DmSetRecordAttr(dmdbrecord_p const dbr, const UInt16 attribute, const 
 
 Err DmCloseDatabase(DmOpenRef dbP)
 {
+	PEDANTIC(assert(dbP));
+
 	LOG("TODO"); return(0);
 
 	dmdb_p db = dbP;
@@ -163,6 +174,8 @@ Err DmGetNextDatabaseByTypeCreator(const Boolean newSearch, DmSearchStatePtr con
 
 MemHandle DmGetRecord(DmOpenRef dbP, UInt16 index)
 {
+	PEDANTIC(assert(dbP));
+
 	dmdbrecord_p dbr = __DmGetRecord(dbP, index);
 	if(!dbr)
 		return(0);
@@ -179,7 +192,10 @@ MemHandle DmGetResource(DmResType type, DmResID resID)
 
 MemHandle DmNewRecord(DmOpenRef const dbP, UInt16 *const atP, const UInt32 size)
 {
+	PEDANTIC(assert(dbP));
+
 	MemHandle h2dbr = MemHandleNew(sizeof(dmdbrecord_t) + size);
+	PEDANTIC(assert(h2dbr));
 
 	LOG("TODO");
 
@@ -198,6 +214,7 @@ MemHandle DmNewRecord(DmOpenRef const dbP, UInt16 *const atP, const UInt32 size)
 DmOpenRef DmOpenDatabase(UInt16 cardNo, LocalID dbID, UInt16 mode)
 {
 	dmdb_p db = __DmOpenDatabase(cardNo, dbID);
+	PEDANTIC(assert(db));
 
 	__DmSetDatabaseAttr(db, dmHdrAttrOpen, true);
 
@@ -212,6 +229,8 @@ Err DmOpenDatabaseInfo(DmOpenRef dbP,
 	UInt16 *const cardNoP,
 	Boolean *const resDBP)
 {
+	PEDANTIC(assert(dbP));
+
 	if(!dbP) return(-1);
 
 	dmdb_p db = (void*)dbP;
@@ -227,6 +246,8 @@ Err DmOpenDatabaseInfo(DmOpenRef dbP,
 
 Err DmReleaseRecord(DmOpenRef dbP, UInt16 index, Boolean dirty)
 {
+	PEDANTIC(assert(dbP));
+
 	if(index & ~dmMaxRecordIndex)
 		return(dmErrIndexOutOfRange);
 
@@ -242,6 +263,8 @@ Err DmReleaseRecord(DmOpenRef dbP, UInt16 index, Boolean dirty)
 
 Err DmReleaseResource(MemHandle resourceH)
 {
+	PEDANTIC(assert(resourceH));
+
 	LOG("TODO"); return(-1);
 
 	UNUSED(resourceH);
@@ -261,6 +284,8 @@ Err DmSetDatabaseInfo(const UInt16 cardNo, const LocalID dbID,
 	UInt32 *const creatorP)
 {
 	dmdb_p db = __DmOpenDatabase(cardNo, dbID);
+
+	PEDANTIC(assert(db));
 
 	PSET(appInfoIDP, db->appInfoID);
 	PSET(attributesP, db->attributes);
@@ -286,6 +311,8 @@ Err DmSetDatabaseInfo(const UInt16 cardNo, const LocalID dbID,
 
 Err DmWrite(void *const recordP, const UInt32 offset, const void* srcP, const UInt32 bytes)
 {
+	PEDANTIC(assert(recordP));
+
 	dmdbrecord_p dbr = recordP;
 
 	if(!dbr->h2db)

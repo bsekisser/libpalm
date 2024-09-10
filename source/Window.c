@@ -2,6 +2,8 @@
 #include "sdk/include/Core/System/SystemMgr.h"
 #include "sdk/include/Libraries/PalmOSGlue/WinGlue.h"
 
+#include "xRect.h"
+
 /* **** */
 
 #include "git/libbse/include/bitops.h"
@@ -19,8 +21,19 @@
 void _WinCreateWindow(WinPtr windowP, const RectangleType* bounds, FrameType frame,
 	Boolean modal, Boolean focusable)
 {
-	RctCopyRectangle(bounds, &windowP->windowBounds);
-	_WinSetClip(windowP, bounds);
+	PEDANTIC(assert(windowP));
+	PEDANTIC(assert(bounds));
+
+	if(!windowP) return;
+
+	RectangleType *const windowBounds = &windowP->windowBounds;
+
+	if(bounds)
+		RctCopyRectangle(bounds, windowBounds);
+	else
+		RectangleTypeInit(windowBounds);
+
+	_WinSetClip(windowP, windowBounds);
 
 	WinGlueSetFrameType(WinGetWindowHandle(windowP), frame);
 
@@ -32,24 +45,37 @@ void _WinCreateWindow(WinPtr windowP, const RectangleType* bounds, FrameType fra
 
 static void _WinGetWindowExtent(WinPtr const windowP, Coord *const extentX, Coord *const extentY)
 {
-	*extentX = windowP->windowBounds.extent.x;
-	*extentY = windowP->windowBounds.extent.y;
+	PEDANTIC(assert(windowP));
+	PEDANTIC(assert(extentX));
+	PEDANTIC(assert(extentX));
+
+	if(extentX)
+		*extentX = windowP ? windowP->windowBounds.extent.x : 0;
+
+	if(extentY)
+		*extentY = windowP ? windowP->windowBounds.extent.y : 0;
 }
 
 void _WinSetClip(WinPtr windowP, const RectangleType* rP)
 {
+	PEDANTIC(assert(windowP));
+
 	if(!windowP) return; // intentional, fail silently.
 
-	windowP->clippingBounds.top = rP->topLeft.x;
-	windowP->clippingBounds.left = rP->topLeft.y;
-	windowP->clippingBounds.bottom = rP->topLeft.x + rP->extent.x;
-	windowP->clippingBounds.right = rP->topLeft.y + rP->extent.y;
+	windowP->clippingBounds.top = rP ? rP->topLeft.x : 0;
+	windowP->clippingBounds.left = rP ? rP->topLeft.y : 0;
+	windowP->clippingBounds.bottom = rP ? rP->topLeft.x + rP->extent.x : 0;
+	windowP->clippingBounds.right = rP ? rP->topLeft.y + rP->extent.y : 0;
 }
 
 /* **** */
 
 void WinAddWindow(WinHandle winHandle) // system use function
 {
+	PEDANTIC(assert(winHandle));
+
+	if(!winHandle) return;
+
 	winHandle->nextWindow = window_manager.firstWindow;
 	window_manager.firstWindow = winHandle;
 }
@@ -57,7 +83,11 @@ void WinAddWindow(WinHandle winHandle) // system use function
 WinHandle WinCreateWindow(const RectangleType* bounds, FrameType frame,
 	Boolean modal, Boolean focusable, UInt16* error)
 {
-	*error = errNone;
+	PEDANTIC(assert(bounds));
+	PEDANTIC(assert(error));
+
+	if(error)
+		*error = errNone;
 
 	WinPtr windowP = calloc(1, sizeof(WindowType));
 	if(!windowP) {
@@ -74,6 +104,8 @@ WinHandle WinCreateWindow(const RectangleType* bounds, FrameType frame,
 
 void WinDeleteWindow(WinHandle winHandle, Boolean eraseIt)
 {
+	PEDANTIC(assert(winHandle));
+
 	WinPtr windowP = winHandle;
 
 	if(window_manager.xcb.connection) {
@@ -91,17 +123,25 @@ void WinDeleteWindow(WinHandle winHandle, Boolean eraseIt)
 
 void WinDrawBitmap(BitmapPtr bitmapP, Coord x, Coord y)
 {
+	PEDANTIC(assert(bitmapP));
+
 	LOG("TODO"); return;
 
-	UNUSED(bitmapP, x, y);
+	if(!bitmapP) return;
+
+	UNUSED(x, y);
 }
 
 void WinDrawChars(const Char* chars, Int16 len,
 	Coord x, Coord y)
 {
+	PEDANTIC(assert(chars));
+
 	LOG("TODO"); return;
 
-	UNUSED(chars, len, x, y);
+	if(!chars) return;
+
+	UNUSED(len, x, y);
 }
 
 void WinDrawLine(Coord x1, Coord y1, Coord x2, Coord y2)
@@ -113,13 +153,19 @@ void WinDrawLine(Coord x1, Coord y1, Coord x2, Coord y2)
 
 void WinDrawRectangle(const RectangleType* rP, UInt16 cornerDiam)
 {
+	PEDANTIC(assert(rP));
+
 	LOG("TODO"); return;
 
-	UNUSED(rP, cornerDiam);
+	if(!rP) return;
+
+	UNUSED(cornerDiam);
 }
 
 xcb_window_t _window_manager_window_create_xcb_window(WinPtr const windowP)
 {
+	PEDANTIC(assert(windowP));
+
 	LOG();
 
 	if(!window_manager.xcb.connection) {
@@ -162,6 +208,8 @@ xcb_window_t _window_manager_window_create_xcb_window(WinPtr const windowP)
 
 void WinDrawWindow(WinPtr const windowP)
 {
+	PEDANTIC(assert(windowP));
+
 	LOG();
 
 	if(!windowP->xcb.window) {
@@ -178,7 +226,11 @@ void WinDrawWindow(WinPtr const windowP)
 
 void WinEraseRectangle(const RectangleType* rP, UInt16 cornerDiam)
 {
+	PEDANTIC(assert(rP));
+
 	LOG("TODO"); return;
+
+	if(!rP) return;
 
 	UNUSED(rP, cornerDiam);
 }
@@ -193,13 +245,19 @@ WinPtr WinGetFirstWindow(void)
 { return(window_manager.firstWindow); }
 
 WinPtr WinGetNextWindow(WinPtr windowP)
-{ return(windowP->nextWindow); }
+{
+	PEDANTIC(assert(windowP));
+
+	return(windowP ? windowP->nextWindow : 0);
+}
 
 void WinGetWindowExtent(Coord *const extentX, Coord *const extentY)
 { return(_WinGetWindowExtent(window_manager.drawWindow, extentX, extentY)); }
 
 void WinRemoveWindow(WinHandle h2window) // system use function
 {
+	PEDANTIC(assert(h2window));
+
 	const WinPtr the_window = h2window;
 	WinPtr lhs = window_manager.firstWindow;
 
@@ -216,7 +274,7 @@ void WinRemoveWindow(WinHandle h2window) // system use function
 		return;
 	}
 
-	do {
+	if(lhs) do {
 		if(the_window == lhs->nextWindow) {
 			if(0) {
 				LOG("matched lhs->nextWindow: 0x%016" PRIxPTR,
@@ -280,7 +338,8 @@ WinPtr WinSetDrawWindow(WinHandle winHandle)
 {
 	WinHandle drawWindow = window_manager.drawWindow;
 
-	winHandle->windowFlags.enabled = 1;
+	if(winHandle)
+		winHandle->windowFlags.enabled = 1;
 
 	window_manager.drawWindow = winHandle;
 

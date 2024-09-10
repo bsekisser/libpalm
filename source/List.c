@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include "xList.h"
 
 /* **** */
@@ -7,12 +9,24 @@
 
 /* **** */
 
+#include <assert.h>
+
+/* **** */
+
 Int16 LstGetSelection(const ListType* listP)
-{ return(listP->currentItem); }
+{
+	PEDANTIC(assert(listP));
+
+	return(listP ? listP->currentItem : noListSelection);
+}
 
 void LstSetSelection(ListType* listP, Int16 itemNum)
 {
+	PEDANTIC(assert(listP));
+
 	LOG("TODO");
+
+	if(!listP) return;
 
 	if(itemNum < listP->topItem)
 		return;

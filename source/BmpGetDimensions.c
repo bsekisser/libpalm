@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include "xBitmap.h"
 
 /* **** */
@@ -7,11 +9,16 @@
 
 /* **** */
 
+#include <assert.h>
+
+/* **** */
+
 void BmpGetDimensions(const BitmapType* bitmapP,
 	Coord *const widthP, Coord *const heightP, UInt16* rowBytesP)
 {
-	if(bitmapP)
-		return;
+	PEDANTIC(assert(bitmapP));
+
+	if(!bitmapP) return;
 
 	if(widthP)
 		*widthP = bitmapP->width;

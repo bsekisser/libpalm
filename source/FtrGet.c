@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include "FeatureMgr.h"
 #include "SystemMgr.h"
 
@@ -8,12 +10,15 @@
 
 /* **** */
 
+#include <assert.h>
 #include <inttypes.h>
 
 /* **** */
 
 Err FtrGet(UInt32 creator, UInt16 featureNum, UInt32* valueP)
 {
+	PEDANTIC(assert(valueP));
+
 	switch(creator) {
 		case sysFtrCreator:
 			switch(featureNum) {

@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include "xFont.h"
 
 /* **** */
@@ -7,6 +9,7 @@
 
 /* **** */
 
+#include <assert.h>
 #include <string.h>
 
 /* **** */
@@ -15,6 +18,8 @@ void FntCharsInWidth(Char const *string,
 	Int16 *const stringWidthP, Int16 *const stringLengthP,
 	Boolean *const fitWithinWidth)
 {
+	PEDANTIC(assert(string));
+
 	unsigned len = strlen(string);
 
 	do { // strip trailing spaces and tabs

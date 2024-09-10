@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include "xEvent.h"
 
 /* **** */
@@ -17,7 +19,7 @@ event_qelem_t event_manager_queue[__EVENT_QUEUE_ALLOC__];
 __attribute__((constructor))
 static void __event_manager_globals_init(void)
 {
-	LOG();
+	AT_INIT(LOG());
 
 	queue_init(&event_manager.free);
 	queue_init(&event_manager.pending);

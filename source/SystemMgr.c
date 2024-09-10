@@ -1,3 +1,5 @@
+#include "config.h"
+
 #include "xWindow.h"
 #include "xForm.h"
 
@@ -18,6 +20,8 @@
 
 Boolean SysHandleEvent(EventPtr eventP)
 {
+	PEDANTIC(assert(eventP));
+
 #if 0
 	static unsigned nilCount = 0;
 
