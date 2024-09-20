@@ -150,6 +150,36 @@ pxcb_window_p XcbCreateWindow(WinPtr const windowP, const RectangleType* windowB
 		exit(-1);
 	}
 
+	/* **** background */
+
+	xw->background = xcb_generate_id(connection);
+	mask = XCB_GC_BACKGROUND;
+	valueP = values;
+	*valueP++ = screen->white_pixel;
+
+	cookie = xcb_create_gc_checked(connection, xw->background, xw->window, mask, values);
+
+	if((error = xcb_request_check(connection, cookie))) {
+		LOG("unable to create background graphic context: %d", error->error_code);
+		xcb_disconnect(connection);
+		exit(-1);
+	}
+
+	/* **** foreground */
+
+	xw->foreground = xcb_generate_id(connection);
+	mask = XCB_GC_FOREGROUND;
+	valueP = values;
+	*valueP++ = screen->black_pixel;
+
+	cookie = xcb_create_gc_checked(connection, xw->foreground, xw->window, mask, values);
+
+	if((error = xcb_request_check(connection, cookie))) {
+		LOG("unable to create foreground graphic context: %d", error->error_code);
+		xcb_disconnect(connection);
+		exit(-1);
+	}
+
 	/* **** */
 
 	xcb_flush(connection);
@@ -211,6 +241,30 @@ void XcbWinDeleteWindow(WinHandle winHandle, Boolean eraseIt)
 	xcb_void_cookie_t cookie;
 	xcb_generic_error_p error = 0;
 
+	if(xw->foreground) {
+		cookie = xcb_free_gc_checked(connection, xw->foreground);
+
+		if((error = xcb_request_check(connection, cookie))) {
+			LOG("unable to free foreground context: %d", error->error_code);
+			xcb_disconnect(connection);
+			exit(-1);
+		}
+
+		PEDANTIC(xw->foreground = 0);
+	}
+
+	if(xw->background) {
+		cookie = xcb_free_gc_checked(connection, xw->background);
+
+		if((error = xcb_request_check(connection, cookie))) {
+			LOG("unable to free background context: %d", error->error_code);
+			xcb_disconnect(connection);
+			exit(-1);
+		}
+
+		PEDANTIC(xw->background = 0);
+	}
+
 	if(xw->window) {
 		cookie = xcb_unmap_window_checked(pxcb_manager.connection, xw->window);
 
@@ -236,7 +290,7 @@ void XcbWinEraseRectangle(const RectangleType* rP, UInt16 cornerDiam)
 	PEDANTIC(assert(rP));
 
 	xcb_void_cookie_t cookie;
-	xcb_generic_error_t* error;
+	xcb_generic_error_p error;
 
 	if(cornerDiam)
 		LOG("TODO: corerDiam: %u", cornerDiam);
@@ -244,30 +298,48 @@ void XcbWinEraseRectangle(const RectangleType* rP, UInt16 cornerDiam)
 	LOG_RECTANGLE(rP);
 
 	xcb_connection_p connection = pxcb_manager.connection;
-	xcb_window_t drawWindow = pxcb_manager.drawWindow->window;
+	pxcb_window_p drawWindow = pxcb_manager.drawWindow;
+	xcb_window_t xDrawWindow = drawWindow->window;
+
+	PEDANTIC(assert(connection));
+	PEDANTIC(assert(drawWindow));
+	PEDANTIC(assert(xDrawWindow));
+	PEDANTIC(assert(drawWindow->background));
+
+	if(!(connection && drawWindow)) return;
 
 	if(0) {
 		LOG_START("connection: 0x%016" PRIxPTR, (uintptr_t)connection);
-		_LOG_(", drawWindow: 0x%016" PRIxPTR, (uintptr_t)pxcb_manager.drawWindow);
-		LOG_END("(0x%08x)", drawWindow);
+		_LOG_(", drawWindow: 0x%016" PRIxPTR, (uintptr_t)drawWindow);
+		LOG_END("(0x%08x)", xDrawWindow);
 	}
 
-	xcb_gcontext_t gc = xcb_generate_id(connection);
+	xcb_rectangle_t xr[] = {
+		{
+			rP->topLeft.x, rP->topLeft.y,
+			rP->extent.x, rP->extent.y,
+		},
+	};
 
+	xcb_gcontext_t gc = xcb_generate_id(connection);
 	uint32_t mask = XCB_GC_BACKGROUND;
 	uint32_t values = pxcb_manager.screen->white_pixel;
 
-	xcb_create_gc(connection, gc, drawWindow, mask, &values);
-
-	xcb_rectangle_t xr = {
-		rP->topLeft.x, rP->topLeft.y,
-		rP->extent.x, rP->extent.y };
-
-	cookie = xcb_poly_fill_rectangle_checked(connection, drawWindow,
-		gc, 1, &xr);
+	cookie = xcb_create_gc_checked(connection, gc, xDrawWindow, mask, &values);
 
 	if((error = xcb_request_check(connection, cookie))) {
-		LOG("poly_rectangle_failed");
+		LOG("create gcontext failed: %d", error->error_code);
+		xcb_disconnect(connection);
+		exit(-1);
+	}
+
+	cookie = xcb_poly_rectangle_checked(connection, xDrawWindow,
+//		drawWindow->background, 1, xr);
+		gc, 1, xr);
+
+	if((error = xcb_request_check(connection, cookie))) {
+		LOG("poly_rectangle_failed: %d", error->error_code);
+		xcb_disconnect(connection);
 		exit(-1);
 	}
 
