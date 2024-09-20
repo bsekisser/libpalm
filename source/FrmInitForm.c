@@ -6,6 +6,7 @@
 
 #include "UIResources.h"
 #include "xRect.h"
+#include "xWindow.h"
 
 /* **** */
 
@@ -159,7 +160,7 @@ FormType* FrmInitForm(UInt16 rscID)
 //	WinAddWindow(&formP->window);
 
 	MemHandleUnlock(h2fr);
-	MemHandleFree(h2fr);
+	DmReleaseResource(h2fr);
 
 	return(formP);
 }

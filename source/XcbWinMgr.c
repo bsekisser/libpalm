@@ -28,7 +28,7 @@ pxcb_manager_t pxcb_manager;
 __attribute__((constructor))
 static void __xcb_manager_globals_init(void)
 {
-	LOG();
+	AT_INIT(LOG());
 
 	memset(&pxcb_manager, 0, sizeof(pxcb_manager_t));
 }
@@ -52,6 +52,10 @@ static void _XcbRemoveWindow(pxcb_window_p xw, pxcb_window_p lhs)
 
 static WinPtr _XcbWinHandle(WinHandle const wh, pxcb_window_h h2xw, pxcb_window_h h2lhs)
 {
+	PEDANTIC(assert(wh));
+
+	if(!wh) return(0);
+
 	pxcb_window_p xw = pxcb_manager.firstWindow;
 
 	while(xw) {
@@ -74,6 +78,8 @@ static WinPtr _XcbWinHandle(WinHandle const wh, pxcb_window_h h2xw, pxcb_window_
 void XcbAddWindow(pxcb_window_p xw)
 {
 	PEDANTIC(assert(xw));
+
+	if(!xw) return;
 
 	xw->nextWindow = pxcb_manager.firstWindow;
 	pxcb_manager.firstWindow = xw;
