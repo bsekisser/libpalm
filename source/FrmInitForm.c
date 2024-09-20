@@ -13,6 +13,7 @@
 
 /* **** */
 
+#include "git/libbse/include/err_test.h"
 #include "git/libbse/include/log.h"
 #include "git/libbse/include/unused.h"
 
@@ -51,10 +52,7 @@ FormType* FrmInitForm(UInt16 rscID)
 
 	/* **** */
 
-	p = lds16be(&bounds->topLeft.x, p);
-	p = lds16be(&bounds->topLeft.y, p);
-	p = lds16be(&bounds->extent.x, p);
-	p = lds16be(&bounds->extent.y, p);
+	p = RectangleTypeLoad(bounds, p);
 
 	f.attr.usable = uint8(&p); p += 1;
 	fw->windowFlags.modal = uint8(&p); p += 1;
@@ -81,18 +79,18 @@ FormType* FrmInitForm(UInt16 rscID)
 	if(config.info.form.initForm)
 		LOGu(f.numObjects);
 
-	const size_t objPtrAlloc = sizeof(f.objects) * f.numObjects;
-	const size_t formAlloc = sizeof(FormType) + objPtrAlloc;
+	FormPtr formP = calloc(1, sizeof(FormType));
+	ERR_NULL(formP);
 
-	FormPtr formP = calloc(1, formAlloc);
-	PEDANTIC(assert(formP));
+	memcpy(formP, &f, sizeof(FormType));
 
-	memcpy(formP, &f, formAlloc);
-
-	void** objectP = (void*)&formP->objects;
+	formP->objects = calloc(f.numObjects, sizeof(FormObjListType));
+	ERR_NULL(formP->objects);
 
 	for(unsigned i = 0; i < f.numObjects; i++)
 	{
+		FormObjListTypePtr objectP = &formP->objects[i];
+
 		uint16_t objID = uint16be(&p);
 		uint32_t objType = uint32be(&p);
 
@@ -100,67 +98,51 @@ FormType* FrmInitForm(UInt16 rscID)
 
 		switch(objType) {
 			case 'Talt':
-				*objectP++ = 0;
 //				load_form_alert(objectP, objectP, objID, objType);
 				break;
 			case 'tBTN':
-				*objectP++ = 0;
 //				load_form_button(objectP, objID, objType);
 				break;
 			case 'tCBX':
-				*objectP++ = 0;
 //				load_form_checkbox(objectP, objID, objType);
 				break;
 			case 'tFBM':
-				*objectP++ = 0;
 //				load_form_bitmap(objectP, objID, objType);
 				break;
 			case 'tFLD':
-				*objectP++ = 0;
 //				load_form_field(objectP, objID, objType);
 				break;
 			case 'tGDT':
-				*objectP++ = 0;
 //				load_form_gadget(objectP, objID, objType);
 				break;
 			case 'tGSI':
-				*objectP++ = 0;
 //				load_form_graffiti_shift_indicator(objectP, objID, objType);
 				break;
 			case 'tLBL':
-				*objectP++ = 0;
 //				load_form_label(objectP, objID, objType);
 				break;
 			case 'tLST':
-				*objectP++ = 0;
 //				load_form_list(objectP, objID, objType);
 				break;
 			case 'tPBN':
-				*objectP++ = 0;
 //				load_form_push_button(objectP, objID, objType);
 				break;
 			case 'tPUT':
-				*objectP++ = 0;
 //				load_form_popup_trigger(objectP, objID, objType);
 				break;
 			case 'tREP':
-				*objectP++ = 0;
 //				load_form_repeating_button(objectP, objID, objType);
 				break;
 			case 'tSCL':
-				*objectP++ = 0;
 //				load_form_scrollbar(objectP, objID, objType);
 				break;
 			case 'tSLT':
-				*objectP++ = 0;
 //				load_form_selector_trigger(objectP, objID, objType);
 				break;
 			case 'tTBL':
-				*objectP++ = 0;
 //				load_form_table(objectP, objID, objType);
 				break;
 			case 'tTTL':
-				*objectP++ = 0;
 //				load_form_tittle(objectP, objID, objType);
 				break;
 			default:
