@@ -5,6 +5,7 @@
 #include <xcb/xcb.h>
 
 typedef xcb_connection_t* xcb_connection_p;
+typedef xcb_generic_error_t* xcb_generic_error_p;
 typedef xcb_screen_t* xcb_screen_p;
 
 /* **** */

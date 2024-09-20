@@ -84,20 +84,29 @@ pxcb_window_p XcbCreateWindow(WinPtr const windowP, const RectangleType* windowB
 	PEDANTIC(assert(windowP));
 	PEDANTIC(assert(windowBounds));
 
+	if(!(windowP && windowBounds)) return(0);
+
 	if(!pxcb_manager.connection) {
 		pxcb_manager.connection = xcb_connect(NULL, NULL);
 
 		PEDANTIC(assert(pxcb_manager.connection));
 
 		if(!pxcb_manager.connection) return(0);
-
-		if(!pxcb_manager.screen) {
-			pxcb_manager.screen = xcb_setup_roots_iterator(
-				xcb_get_setup(pxcb_manager.connection)).data;
-
-			PEDANTIC(assert(pxcb_manager.screen));
-		}
 	}
+
+	if(!pxcb_manager.screen) {
+		pxcb_manager.screen = xcb_setup_roots_iterator(
+			xcb_get_setup(pxcb_manager.connection)).data;
+
+		PEDANTIC(assert(pxcb_manager.screen));
+
+		if(!pxcb_manager.screen) return(0);
+	}
+
+	xcb_connection_p connection = pxcb_manager.connection;
+	xcb_void_cookie_t cookie;
+	xcb_generic_error_p error = 0;
+	xcb_screen_p screen = pxcb_manager.screen;
 
 	uint32_t mask;
 	uint32_t values[9], *valueP = values;
@@ -107,40 +116,43 @@ pxcb_window_p XcbCreateWindow(WinPtr const windowP, const RectangleType* windowB
 
 	xw->palm.window = windowP;
 
-/*
-	xw->gc = xcb_generate_id(pxcb_manager.connection);
-//	uint32_t mask = XCB_GC_FOREGROUND | XCB_GC_GRAPHICS_EXPOSURES;
-	mask = XCB_GC_FOREGROUND | XCB_GC_BACKGROUND;
-	valueP = values;
-	*valueP++ = pxcb_manager.screen->white_pixel;
-	*valueP++ = pxcb_manager.screen->black_pixel;
+	/* **** create the x window */
 
-	xcb_create_gc(pxcb_manager.connection, xw->gc, pxcb_manager.screen->root, mask, values);
-*/
-
-	xw->window = xcb_generate_id(pxcb_manager.connection);
+	xw->window = xcb_generate_id(connection);
 	mask =
-		XCB_CW_BACK_PIXEL
-		| XCB_CW_SAVE_UNDER
-		| XCB_CW_EVENT_MASK;
+		XCB_CW_BACK_PIXEL |
+		XCB_CW_SAVE_UNDER |
+		XCB_CW_EVENT_MASK;
 	valueP = values;
-	*valueP++ = pxcb_manager.screen->white_pixel;
+	*valueP++ = screen->white_pixel;
 	*valueP++ = 1;
-	*valueP++ =	XCB_EVENT_MASK_BUTTON_PRESS	| XCB_EVENT_MASK_KEY_RELEASE;
+	*valueP++ =
+		XCB_EVENT_MASK_BUTTON_PRESS |
+		XCB_EVENT_MASK_KEY_RELEASE;
 
 	LOG_RECTANGLE(windowBounds);
 
-	xcb_create_window(pxcb_manager.connection,
-		XCB_COPY_FROM_PARENT,
+	cookie = xcb_create_window_checked(connection,
+		screen->root_depth,
+//		XCB_COPY_FROM_PARENT,
 		xw->window,
-		pxcb_manager.screen->root,
+		screen->root,
 		windowBounds->topLeft.x, windowBounds->topLeft.y,
 		windowBounds->extent.x, windowBounds->extent.y,
 		frameWidth,
 		XCB_WINDOW_CLASS_INPUT_OUTPUT,
-		0,
-//		pxcb_manager.screen->root_visual,
+		screen->root_visual,
 		mask, &values);
+
+	if((error = xcb_request_check(connection, cookie))) {
+		LOG("unable to create window: %d", error->error_code);
+		xcb_disconnect(connection);
+		exit(-1);
+	}
+
+	/* **** */
+
+	xcb_flush(connection);
 
 	XcbAddWindow(xw);
 
@@ -159,12 +171,22 @@ pxcb_window_p XcbDrawWindow_start(WinPtr windowP)
 {
 	PEDANTIC(assert(windowP));
 
+	if(!windowP) return(0);
+
+	xcb_connection_p connection = pxcb_manager.connection;
 	pxcb_window_p xw = 0;
 
 	(void)_XcbWinHandle(windowP, &xw, 0);
 
-	if(pxcb_manager.connection)
-		xcb_map_window(pxcb_manager.connection, xw->window);
+	xcb_void_cookie_t cookie = xcb_map_window_checked(connection, xw->window);
+
+	xcb_generic_error_p error = 0;
+
+	if((error = xcb_request_check(connection, cookie))) {
+		LOG("unable to map window: %d", error->error_code);
+		xcb_disconnect(connection);
+		exit(-1);
+	}
 
 	return(xw);
 }
@@ -173,6 +195,8 @@ void XcbWinDeleteWindow(WinHandle winHandle, Boolean eraseIt)
 {
 	PEDANTIC(assert(winHandle));
 
+	if(!winHandle) return;
+
 	pxcb_window_p xw = 0, lhs = 0;
 
 	(void)_XcbWinHandle(winHandle, &xw, &lhs);
@@ -180,9 +204,28 @@ void XcbWinDeleteWindow(WinHandle winHandle, Boolean eraseIt)
 	if(eraseIt)
 		LOG("TODO: eraseIt");
 
-	if(pxcb_manager.connection)
-		xcb_unmap_window(pxcb_manager.connection, xw->window);
+	xcb_connection_p connection = pxcb_manager.connection;
 
+	if(!connection) goto failConnectionExit;
+
+	xcb_void_cookie_t cookie;
+	xcb_generic_error_p error = 0;
+
+	if(xw->window) {
+		cookie = xcb_unmap_window_checked(pxcb_manager.connection, xw->window);
+
+		if((error = xcb_request_check(connection, cookie))) {
+			LOG("unable to unmap window: %d", error->error_code);
+			xcb_disconnect(connection);
+			exit(-1);
+		}
+
+		PEDANTIC(xw->window = 0);
+	}
+
+	xcb_flush(connection);
+
+failConnectionExit:
 	_XcbRemoveWindow(xw, lhs);
 
 	free(xw);
