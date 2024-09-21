@@ -42,7 +42,11 @@ Boolean __DmDatabaseAttr(dmdb_p const db, const UInt16 attribute, Boolean *const
 }
 
 dmdb_p __DmOpenDatabase(UInt16 card, LocalID dbID)
-{ return((dmdb_p)(__mem_card[card] + dbID)); }
+{
+	LOG("TODO");
+
+	return((dmdb_p)(__mem_card[card] + dbID));
+}
 
 Boolean __DmRecordAttr(dmdbrecord_p const dbr, const UInt16 attribute, Boolean *const p2set)
 {
@@ -199,12 +203,14 @@ MemHandle DmNewRecord(DmOpenRef const dbP, UInt16 *const atP, const UInt32 size)
 
 	LOG("TODO");
 
-	dmdbrecord_p dbr = *(dmdbrecord_h)h2dbr;
+	dmdbrecord_p dbr = MemHandleLock(h2dbr);
 
 	dbr->p2db = dbP;
 
 	__DmSetRecordBusy(dbr, true);
 	__DmSetRecordDirty(dbr, true);
+
+	MemHandleUnlock(h2dbr);
 
 	return(h2dbr);
 
@@ -265,6 +271,8 @@ Err DmReleaseResource(MemHandle resourceH)
 {
 	PEDANTIC(assert(resourceH));
 
+	MemHandleFree(resourceH);
+
 	LOG("TODO"); return(-1);
 
 	UNUSED(resourceH);
@@ -296,6 +304,8 @@ Err DmSetDatabaseInfo(const UInt16 cardNo, const LocalID dbID,
 	PSET(modNumP, db->modNum);
 
 	if(nameP) {
+		LOG("nameP: %s", nameP);
+
 		const unsigned maxLen = sizeof(db->name) - 1;
 
 		strncpy(db->name, nameP, maxLen);

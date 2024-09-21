@@ -34,11 +34,12 @@ PALM-SDK-INCLUDE = $(PALM-SDK)/include
 SRC_DIR = source
 SRCS = $(wildcard $(SRC_DIR)/*.c)
 
-TARGET_LIB = libpalm.so
+TARGET_LIB_A = libpalm.a
+TARGET_LIB_SO = libpalm.so
 
 VPATH = source
 
-all: $(TARGET_LIB)
+all: $(TARGET_LIB_A) $(TARGET_LIB_SO)
 
 include git/libbse/makefile.setup
 

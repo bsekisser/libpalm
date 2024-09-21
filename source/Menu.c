@@ -26,11 +26,11 @@ void MenuEraseStatus(MenuBarType *menuP)
 
 Boolean MenuHandleEvent(MenuBarType* menuP, EventType* eventP, UInt16* error)
 {
-	PEDANTIC(assert(menuP));
+//	PEDANTIC(assert(menuP)); // apparently menuP null is okay.
 	PEDANTIC(assert(eventP));
 	PEDANTIC(assert(error));
 
-	*error = -1;
+	*error = 0; // documentation states always set to zero
 
 	switch(eventP->eType) {
 		case keyDownEvent:

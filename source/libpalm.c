@@ -19,8 +19,10 @@
 /* **** */
 
 config_t config = {
-//	.at.raw_flags = ~0U,
+	.at.raw_flags = ~0U,
+	.raw_flags = ~0U,
 	.debug = 1,
+	.pedantic = 1,
 };
 
 /* **** */

@@ -17,7 +17,6 @@ typedef struct config_t {
 		};
 	}at;
 	struct {
-		unsigned resource:1;
 		struct {
 			unsigned initForm:1;
 		}form;

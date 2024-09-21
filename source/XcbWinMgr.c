@@ -44,10 +44,13 @@ static void _XcbRemoveWindow(pxcb_window_p xw, pxcb_window_p lhs)
 
 	if(!xw) return;
 
+	pxcb_window_p const nextWindow = xw->nextWindow;
+	xw->nextWindow = 0;
+
 	if(lhs)
-		lhs->nextWindow = xw->nextWindow;
+		lhs->nextWindow = nextWindow;
 	else
-		pxcb_manager.firstWindow = xw->nextWindow;
+		pxcb_manager.firstWindow = nextWindow;
 }
 
 static WinPtr _XcbWinHandle(WinHandle const wh, pxcb_window_h h2xw, pxcb_window_h h2lhs)
@@ -56,16 +59,18 @@ static WinPtr _XcbWinHandle(WinHandle const wh, pxcb_window_h h2xw, pxcb_window_
 
 	if(!wh) return(0);
 
-	pxcb_window_p xw = pxcb_manager.firstWindow;
+	pxcb_window_p lhs, xw = pxcb_manager.firstWindow;
 
 	while(xw) {
 		if(wh == xw->palm.window)
 			break;
 
-		if(h2lhs) *h2lhs = xw;
-
-		xw = xw->nextWindow;
+		lhs = xw;
+		xw = lhs->nextWindow;
 	}
+
+	if(h2lhs)
+		*h2lhs = xw;
 
 	if(h2xw)
 		*h2xw = xw;

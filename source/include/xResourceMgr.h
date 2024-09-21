@@ -17,7 +17,7 @@ typedef struct resource_map_t* resource_map_p;
 
 /* **** */
 
-#include "MemoryMgr.h"
+#include "xMemoryMgr.h"
 
 /* **** */
 
@@ -86,5 +86,4 @@ extern resource_map_h current_resource;
 
 MemHandle resource_get(uint32_t type, uint16_t resID);
 MemHandle resource_get1(resource_map_h map, uint32_t type, uint16_t resID);
-//resource_map_h resource_map(resource_header_p const rh, void *const rf);
 int resource_open(const char* path);
