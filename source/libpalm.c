@@ -35,8 +35,6 @@ int main(int argc, char** argv)
 {
 //	DEBUG(LOGzu(sizeof(config_t)));
 
-//	xcb_connection_t* xc = xcb_connect(0, 0);
-
 	/* **** */
 
 //	if(resource_open("MerchantBW.rsrc"))
@@ -61,8 +59,6 @@ int main(int argc, char** argv)
 	LOG("%s", SysErrString(rval, error_string, sizeof(error_string)));
 
 	/* **** */
-
-//	xcb_disconnect(xc);
 
 	return(0);
 
