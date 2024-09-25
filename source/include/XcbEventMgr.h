@@ -2,6 +2,10 @@
 
 /* **** */
 
+#include "config.h"
+
+/* **** */
+
 #include "sdk/include/Core/UI/Event.h"
 //#include "xEvent.h"
 

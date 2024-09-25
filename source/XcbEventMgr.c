@@ -7,14 +7,48 @@
 
 /* **** */
 
+#include "git/libbse/include/log.h"
 #include "git/libbse/include/unused.h"
+
+/* **** */
+
+#include <string.h>
+
+/* **** */
+
+struct config_xcb_event_t {
+	struct {
+		struct {
+			unsigned entry:1;
+			unsigned exit:1;
+		}at;
+	}trace;
+}xcb_event_config;
+
+/* **** */
+
+__attribute__((constructor))
+static void __xcb_event_manager_config_init(void)
+{
+	AT_INIT(LOG());
+
+	(void)memset(&xcb_event_config, 0, sizeof(xcb_event_config));
+
+//	xcb_event_config.trace.at.entry = 1;
+//	xcb_event_config.trace.at.exit = 1;
+}
 
 /* **** */
 
 Boolean XcbEvtGetEvent(EventType* eventP, Int32 timeout)
 {
+	if(xcb_event_config.trace.at.entry) LOG(">>");
+
 	xcb_generic_event_t* e;
 	Boolean handled = 0;
+
+	if(!pxcb_manager.connection)
+		goto exit_no_connection;
 
 	e = xcb_poll_for_event(pxcb_manager.connection);
 	if(e) {
@@ -52,6 +86,9 @@ Boolean XcbEvtGetEvent(EventType* eventP, Int32 timeout)
 
 		free(e);
 	}
+
+exit_no_connection:
+	if(xcb_event_config.trace.at.exit) LOG("<<");
 
 	return(handled);
 	UNUSED(timeout);
