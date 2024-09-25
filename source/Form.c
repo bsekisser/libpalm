@@ -21,6 +21,28 @@
 
 /* **** */
 
+struct config_form_t {
+	struct {
+		struct {
+			unsigned entry:1;
+			unsigned exit:1;
+		}at;
+	}trace;
+}form_config;
+
+/* **** */
+
+__attribute__((constructor))
+static void __form_manager_confg_init(void)
+{
+	AT_INIT(LOG());
+
+	(void)memset(&form_config, 0, sizeof(form_config));
+
+//	form_config.trace.at.entry = 1;
+//	form_config.trace.at.exit = 1;
+}
+
 static int _event_form_id(EventPtr eventP)
 {
 	PEDANTIC(assert(eventP));
@@ -197,6 +219,8 @@ UInt16 FrmGetActiveFormID(void)
 
 FormType* FrmGetFirstForm(void)
 {
+	if(form_config.trace.at.entry) LOG();
+
 	WinPtr windowP = WinGetFirstWindow();
 
 	while(windowP) {
@@ -206,6 +230,8 @@ FormType* FrmGetFirstForm(void)
 		windowP = WinGetNextWindow(windowP);
 	}
 
+	if(form_config.trace.at.exit) LOG();
+
 	return(0);
 }
 
@@ -214,6 +240,11 @@ UInt16 FrmGetFormId(const FormType* formP)
 
 FormType* FrmGetFormPtr(const UInt16 formID)
 {
+	if(form_config.trace.at.entry) {
+		LOG_START(">>");
+		LOG_END(" formID: 0x%04x (%u)", formID, formID);
+	}
+
 	FormPtr formP = FrmGetFirstForm();
 
 	while(formP) {
@@ -222,6 +253,8 @@ FormType* FrmGetFormPtr(const UInt16 formID)
 
 		formP = FrmGetNextForm(formP);
 	}
+
+	if(form_config.trace.at.exit) LOG("<<");
 
 	return(0);
 }
