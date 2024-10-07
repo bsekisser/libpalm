@@ -162,6 +162,4 @@ void EvtGetEvent(EventType* eventP, Int32 timeout)
 		memset(eventP, 0, sizeof(EventType));
 		eventP->eType = nilEvent;
 	}
-
-	UNUSED(timeout);
 }

@@ -160,6 +160,8 @@ FormType* FrmInitForm(UInt16 rscID)
 	_WinCreateWindow(&formP->window, bounds, simpleFrame, fw->windowFlags.modal, true);
 //	WinAddWindow(&formP->window);
 
+	formP->attr.usable = 1;
+
 	MemHandleUnlock(h2fr);
 	DmReleaseResource(h2fr);
 

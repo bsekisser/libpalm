@@ -27,6 +27,33 @@
 #include <assert.h>
 #include <inttypes.h>
 #include <stdlib.h>
+#include <string.h>
+
+/* **** */
+
+struct config_window_manager_t {
+	struct {
+		struct {
+			unsigned entry:1;
+			unsigned exit:1;
+		}at;
+	}trace;
+}window_manager_config;
+
+#define TRACE window_manager_config.trace
+
+/* **** */
+
+__attribute__((constructor))
+static void window_manager_config_init(void)
+{
+	AT_INIT(LOG());
+
+	memset(&window_manager_config, 0, sizeof(window_manager_config));
+
+	window_manager_config.trace.at.entry = 1;
+	window_manager_config.trace.at.exit = 1;
+}
 
 /* **** */
 
@@ -129,7 +156,8 @@ void WinDrawChars(const Char* chars, Int16 len,
 {
 	PEDANTIC(assert(chars));
 
-	LOG("TODO"); return;
+	LOG_START(">> TODO -- ");
+	LOG_END("chars: 0x%016" PRIxPTR "(%s)", (uintptr_t)chars, chars ?: "");
 
 	if(!chars) return;
 
@@ -157,6 +185,7 @@ void WinDrawRectangle(const RectangleType* rP, UInt16 cornerDiam)
 void WinDrawWindow(WinPtr const windowP)
 {
 	PEDANTIC(assert(windowP));
+//	PEDANTIC(assert(windowP->windowFlags.visible));
 
 	LOG();
 
@@ -169,11 +198,50 @@ void WinDrawWindow(WinPtr const windowP)
 	XcbDrawWindow_end(xwP);
 }
 
+void WinEnterWindowEvent(const struct _WinEnterEventType *const winEnter)
+{
+	WinHandle const enterWindow = winEnter->enterWindow;
+
+	if(0) {
+		LOG_START("enterWindow: 0x%016" PRIxPTR, (uintptr_t)winEnter->enterWindow);
+		LOG_END(", exitedWindow: 0x%016" PRIxPTR, (uintptr_t)winEnter->exitWindow);
+	}
+
+	WinPtr const theWindow = winEnter->enterWindow;
+	if(!theWindow) return;
+
+	WinSetEnabled(enterWindow, true);
+
+	window_manager.activeWindow = enterWindow;
+	(void)WinSetDrawWindow(enterWindow);
+
+	if(theWindow->windowFlags.dialog)
+		LOG_ACTION(current_form = (FormPtr)enterWindow);
+}
+
 void WinEraseRectangle(const RectangleType* rP, UInt16 cornerDiam)
 {
 	PEDANTIC(assert(rP));
 
 	XcbWinEraseRectangle(rP, cornerDiam);
+}
+
+void WinExitWindowEvent(const struct _WinExitEventType *const winExit)
+{
+	if(0) {
+		LOG_START("exitWindow: 0x%016" PRIxPTR, (uintptr_t)winExit->exitWindow);
+		LOG_END(", enterWindow: 0x%016" PRIxPTR, (uintptr_t)winExit->enterWindow);
+	}
+
+	WinPtr theWindow = winExit->exitWindow;
+
+	if(theWindow) {
+		theWindow->windowFlags.enabled = 0;
+		theWindow->windowFlags.visible = 0;
+	}
+
+	window_manager.exitWindowID = 0;
+	window_manager.exitedWindowID = winExit->exitWindow;
 }
 
 WinHandle WinGetActiveWindow(void)
@@ -201,23 +269,24 @@ Boolean WinHandleEvent(EventPtr eventP)
 
 	if(!eventP) return(0);
 
+	struct _WinEnterEventType *const winEnter = &eventP->data.winEnter;
+	struct _WinExitEventType *const winExit = &eventP->data.winExit;
+
 	switch(eventP->eType) {
-		case sysEventWinEnterEvent: {
-			WinPtr enterWindow = eventP->data.winEnter.enterWindow;
-			enterWindow->windowFlags.enabled = 1;
-
-			window_manager.enterWindowID = 0;
-			window_manager.exitedWindowID = 0;
-
-			(void)XcbWinSetActiveWindow(enterWindow);
-			(void)WinSetDrawWindow(enterWindow);
-
-			if(enterWindow->windowFlags.dialog)
-				LOG_ACTION(current_form = (FormPtr)enterWindow);
-		}break;
+		case sysEventWinEnterEvent:
+if(0)		LOG("sysEventWinEnterEvent: 0x%016" PRIxPTR, (uintptr_t)winEnter->enterWindow);
+			if(XcbWinEnterWindow(winEnter->enterWindow, winEnter->exitWindow)) {
+				WinEnterWindowEvent(winEnter);
+				window_manager.enterWindowID = 0;
+			}
+		break;
 		case sysEventWinExitEvent:
-			window_manager.exitedWindowID = eventP->data.winExit.exitWindow;
-			window_manager.exitWindowID = 0;
+if(0)		LOG("sysEventWinExitEvent: 0x%016" PRIxPTR, (uintptr_t)winExit->exitWindow);
+			if(XcbWinExitWindow(winExit->exitWindow, winEnter->enterWindow)) {
+				WinExitWindowEvent(winExit);
+				window_manager.exitedWindowID = winExit->exitWindow;
+				window_manager.exitWindowID  = 0;
+			}
 		break;
 		default: break;
 	}
@@ -251,11 +320,10 @@ Err WinScreenMode(const WinScreenModeOperation operation,
 				*enableColorP = true;
 		break;
 		case winScreenModeGetSupportedDepths:
-		LOG();
 			if(depthP) {
 				LOG();
 				*depthP = (1 | 2 | ((_BV(4) | _BV(8) | _BV(16)) >> 1));
-				LOG("depth: 0x%08lx", *depthP);
+if(0)			LOG("depth: 0x%08lx", *depthP);
 		}
 		break;
 		case winScreenModeSet:
@@ -273,8 +341,12 @@ Err WinScreenMode(const WinScreenModeOperation operation,
 
 void WinSetActiveWindow(WinHandle winHandle)
 {
+	TRACE_ENTRY("winHandle: 0%016" PRIxPTR, (uintptr_t)winHandle);
+
 	window_manager.enterWindowID = winHandle;
 	window_manager.exitWindowID = XcbWinGetActiveWindow();
+
+	TRACE_EXIT();
 }
 
 void WinSetClip(const RectangleType* rP)
@@ -283,10 +355,27 @@ void WinSetClip(const RectangleType* rP)
 WinPtr WinSetDrawWindow(WinHandle winHandle)
 {
 	WinPtr drawWindow = XcbWinSetDrawWindow(winHandle);
-	WinPtr theWindow = winHandle;
+//	WinPtr theWindow = winHandle;
 
-	if(theWindow)
-		theWindow->windowFlags.enabled = 1;
+//	if(drawWindow)
+//		drawWindow->windowFlags.enabled = 0;
+
+//	if(theWindow)
+//		theWindow->windowFlags.enabled = 1;
 
 	return(drawWindow);
+}
+
+void WinSetEnabled(WinHandle const winHandle, const Boolean enabled)
+{
+	WinPtr const theWindow = winHandle;
+
+	theWindow->windowFlags.enabled = enabled;
+}
+
+void WinSetVisible(WinHandle const winHandle, const Boolean visible)
+{
+	WinPtr const theWindow = winHandle;
+
+	theWindow->windowFlags.visible = visible;
 }

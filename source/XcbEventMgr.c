@@ -61,6 +61,9 @@ Boolean XcbEvtGetEvent(EventType* eventP, Int32 timeout)
 				eventP->screenY = ev->event_y;
 				handled = 1;
 			}break;
+			case XCB_EXPOSE:
+				XcbExposeEvent((xcb_expose_event_t*)e);
+			break;
 			case XCB_KEY_RELEASE: {
 				xcb_key_release_event_t* ev = (xcb_key_release_event_t*)e;
 				switch(ev->detail) {
@@ -82,6 +85,9 @@ Boolean XcbEvtGetEvent(EventType* eventP, Int32 timeout)
 						break;
 				}
 			}break;
+			case XCB_UNMAP_NOTIFY:
+				XcbUnmapNotifyEvent((xcb_unmap_notify_event_t*)e);
+			break;
 		}
 
 		free(e);

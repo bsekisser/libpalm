@@ -30,6 +30,8 @@ struct config_form_t {
 	}trace;
 }form_config;
 
+#define TRACE form_config.trace
+
 /* **** */
 
 __attribute__((constructor))
@@ -39,8 +41,8 @@ static void __form_manager_confg_init(void)
 
 	(void)memset(&form_config, 0, sizeof(form_config));
 
-//	form_config.trace.at.entry = 1;
-//	form_config.trace.at.exit = 1;
+	TRACE.at.entry = 1;
+	TRACE.at.exit = 1;
 }
 
 static int _event_form_id(EventPtr eventP)
@@ -73,18 +75,19 @@ static int _event_form_id(EventPtr eventP)
 
 UInt16 FrmAlert(UInt16 alertID)
 {
-	LOG("alertID: %d (0x%04x)", alertID, alertID);
-
-	LOG("TODO"); return(0);
-
-//	UNUSED(alertID);
+	LOG("-- TODO -- alertID: %d (0x%04x)", alertID, alertID);
+	return(0);
 }
 
 void FrmCloseAllForms(void)
-{ LOG("TODO"); }
+{
+	LOG("TODO");
+}
 
 void FrmCopyLabel(FormType *const formP, const UInt16 labelID, const Char* newLabel)
 {
+	TRACE_ENTRY();
+
 	PEDANTIC(assert(formP));
 	PEDANTIC(assert(newLabel));
 
@@ -100,10 +103,14 @@ void FrmCopyLabel(FormType *const formP, const UInt16 labelID, const Char* newLa
 			LOG("TODO");
 ;//			FrmDrawLabel(formP, labelP);
 	}
+
+	TRACE_EXIT();
 }
 
 void FrmCopyTitle(FormType *const formP, const Char* newTitle)
 {
+	TRACE_ENTRY();
+
 	PEDANTIC(assert(formP));
 
 //	char* dst = strncpy(formP->title, newTitle, form->reserved);
@@ -115,19 +122,25 @@ void FrmCopyTitle(FormType *const formP, const Char* newTitle)
 ;//			FrmDrawTitle(formP);
 	}
 
+	TRACE_EXIT();
+
 	UNUSED(newTitle);
 }
 
 UInt16 FrmCustomAlert(UInt16 alertID,
 	const char* s1, const char* s2, const char* s3)
 {
-	LOG("TODO"); return(0);
+	LOG("TODO");
+
+	return(0);
 
 	UNUSED(alertID, s1, s2, s3);
 }
 
 void FrmDeleteForm(FormType* formP)
 {
+	TRACE_ENTRY();
+
 	PEDANTIC(assert(formP));
 
 	for(unsigned x = 0; x < formP->numObjects; x++) {
@@ -154,10 +167,14 @@ void FrmDeleteForm(FormType* formP)
 		LOG("TODO: delete form menu");
 
 	WinDeleteWindow(&formP->window, formP->attr.saveBehind);
+
+	TRACE_EXIT();
 }
 
 Boolean FrmDispatchEvent(EventPtr eventP)
 {
+	PEDANTIC(TRACE_ENTRY());
+
 	PEDANTIC(assert(eventP));
 
 	Boolean handled = false;
@@ -177,28 +194,38 @@ Boolean FrmDispatchEvent(EventPtr eventP)
 			return(FrmHandleEvent(formP, eventP));
 	}
 
+	PEDANTIC(TRACE_EXIT());
+
 	return(handled);
 }
 
 UInt16 FrmDoDialog(FormType* formP)
 {
+	TRACE_ENTRY();
+
 	PEDANTIC(assert(formP));
 
-	LOG("TODO"); return(0);
+	TRACE_EXIT();
+	return(0);
 
 	UNUSED(formP);
 }
 
 void FrmDrawForm(FormType* formP)
 {
+	if(TRACE_ENTRY_START("TODO")) {
+		LOG_END(" formP: 0x%016" PRIxPTR, (uintptr_t)formP);
+	}
+
 	PEDANTIC(assert(formP));
 
 	WinPtr form_window = &formP->window;
 	WinPtr saved_draw_window = WinSetDrawWindow(form_window);
 
 	if(0) if(saved_draw_window && (saved_draw_window != form_window)) {
-		if(formP->attr.saveBehind)
+		if(formP->attr.saveBehind) {
 ;//			_FrmEraseForm(formP, true);
+		}
 	}
 
 	WinDrawWindow(form_window);
@@ -206,47 +233,71 @@ void FrmDrawForm(FormType* formP)
 	LOG("TODO");
 
 	WinSetDrawWindow(saved_draw_window);
+
+	TRACE_EXIT();
 }
 
 FormType* FrmGetActiveForm(void)
 {
+	TRACE_ENTRY();
+
 	WinPtr windowP = WinGetActiveWindow();
+	const unsigned is_dialog = windowP ? windowP->windowFlags.dialog : 0;
 
-	if(!windowP) return(0);
+	FormPtr formP = is_dialog ? (FormPtr)windowP : 0;
 
-	return(windowP->windowFlags.dialog ? (FormPtr)windowP : 0);
+	if(TRACE_EXIT_START()) {
+		_LOG_("windowP: 0x%016" PRIxPTR, (uintptr_t)windowP);
+		_LOG_(".dialog: %01u", is_dialog);
+		LOG_END(", formP: 0x%016" PRIxPTR, (uintptr_t)formP);
+	}
+
+	return(formP);
 }
 
 UInt16 FrmGetActiveFormID(void)
-{ return(FrmGetFormId(FrmGetActiveForm())); }
+{
+	TRACE_ENTRY();
+
+	UInt16 formID = FrmGetFormId(FrmGetActiveForm());
+
+	TRACE_EXIT("formID: 0x%04x", formID);
+
+	return(formID);
+}
 
 FormType* FrmGetFirstForm(void)
 {
-	if(form_config.trace.at.entry) LOG();
+	TRACE_ENTRY();
 
 	WinPtr windowP = WinGetFirstWindow();
 
 	while(windowP) {
 		if(windowP->windowFlags.dialog)
-			return((FormPtr)windowP);
+			break;
 
 		windowP = WinGetNextWindow(windowP);
 	}
 
-	if(form_config.trace.at.exit) LOG();
+	TRACE_EXIT("formP: 0x%016" PRIxPTR, (uintptr_t)windowP);
 
-	return(0);
+	return((FormPtr)windowP);
 }
 
 UInt16 FrmGetFormId(const FormType* formP)
-{ return(formP ? formP->formId : 0); }
+{
+	TRACE_ENTRY();
+
+	UInt16 formId = formP ? formP->formId : 0;
+
+	TRACE_EXIT();
+
+	return(formId);
+}
 
 FormType* FrmGetFormPtr(const UInt16 formID)
 {
-	if(form_config.trace.at.entry) {
-		LOG_START(">>");
-		LOG_END(" formID: 0x%04x (%u)", formID, formID);
-	}
+	TRACE_ENTRY("formID: 0x%04x (%u)", formID, formID);
 
 	FormPtr formP = FrmGetFirstForm();
 
@@ -257,23 +308,27 @@ FormType* FrmGetFormPtr(const UInt16 formID)
 		formP = FrmGetNextForm(formP);
 	}
 
-	if(form_config.trace.at.exit) LOG("<<");
+	TRACE_EXIT();
 
 	return(0);
 }
 
 FormPtr FrmGetNextForm(FormPtr formP)
 {
+	TRACE_ENTRY();
+
 	WinPtr windowP = ((WinPtr)formP) ? &formP->window : WinGetFirstWindow();
 
 	while(windowP) {
 		if(windowP->windowFlags.dialog)
-			return((FormPtr)windowP);
+			break;
 
 		windowP = windowP->nextWindow;
 	}
 
-	return(0);
+	TRACE_EXIT();
+
+	return((FormPtr)windowP);
 }
 
 UInt16 FrmGetNumberOfObjects(const FormType* formP)
@@ -296,9 +351,10 @@ UInt16 FrmGetObjectIndex(const FormType* formP, UInt16 objID)
 
 UInt16 FrmGetObjectIndexFromPtr(const FormType* formP, void *const objP)
 {
-	PEDANTIC(assert(formP));
+	if(!TRACE_ENTRY("TODO"))
+		LOG("TODO");
 
-	LOG("TODO");
+	PEDANTIC(assert(formP));
 
 //	UInt16 objIndex = frmInvalidObjectId;
 	UInt16 numObjexts = FrmGetNumberOfObjects(formP);
@@ -306,6 +362,8 @@ UInt16 FrmGetObjectIndexFromPtr(const FormType* formP, void *const objP)
 		if(FrmGetObjectPtr(formP, index) == objP)
 			return(index);
 	}
+
+	TRACE_EXIT();
 
 	return(frmInvalidObjectId);
 }
@@ -321,6 +379,8 @@ void* FrmGetObjectPtr(const FormType* formP, UInt16 objIndex)
 
 void FrmGotoForm(UInt16 formID)
 {
+	TRACE_ENTRY("formID: 0x%02x", formID);
+
 	EventType event;
 
 	if(current_form) {
@@ -336,6 +396,8 @@ void FrmGotoForm(UInt16 formID)
 	event.eType = frmOpenEvent;
 	event.data.frmOpen.formID = formID;
 	EvtAddEventToQueue(&event);
+
+	TRACE_EXIT();
 }
 
 Boolean FrmHandleEvent(FormPtr formP, EventPtr eventP)
@@ -401,9 +463,12 @@ void FrmHelp(UInt16 helpMsgID)
 
 void FrmHideObject(FormType* formP, UInt16 objIndex)
 {
+	if(!TRACE_ENTRY("TODO"))
+		LOG("TODO");
+
 	PEDANTIC(assert(formP));
 
-	LOG("TODO"); return;
+	TRACE_EXIT();
 
 	UNUSED(formP, objIndex);
 }
@@ -411,37 +476,55 @@ void FrmHideObject(FormType* formP, UInt16 objIndex)
 //FormType* FrmInitForm(UInt16 rscID)
 
 void FrmSetActiveForm(FormType *const formP)
-{ WinSetActiveWindow(&formP->window); }
+{
+	TRACE_ENTRY("formP: 0x%016" PRIxPTR, (uintptr_t)formP);
+
+	WinSetActiveWindow(&formP->window);
+
+	TRACE_EXIT();
+}
 
 void FrmSetEventHandler(FormType* formP, FormEventHandlerType* handler)
 {
+	TRACE_ENTRY();
+
 	PEDANTIC(assert(formP));
 
-	if(!formP) return;
+	if(formP) {
+		formP->handler = handler;
+	}
 
-	formP->handler = handler;
+	TRACE_EXIT();
 }
 
 void FrmSetFocus(FormType* formP, UInt16 fieldIndex)
 {
+	if(!TRACE_ENTRY("TODO"))
+		LOG("TODO");
+
 	PEDANTIC(assert(formP));
 
 	formP->focus = fieldIndex;
 
-	LOG("TODO");
+	TRACE_EXIT();
 }
 
 void FrmSetMenu(FormType *const formP, const UInt16 menuRscID)
 {
+	if(!TRACE_ENTRY("TODO"))
+		LOG("TODO");
+
 	PEDANTIC(assert(formP));
 
-	LOG("TODO"); return;
+	TRACE_EXIT();
 
 	UNUSED(formP, menuRscID);
 }
 
 void FrmSetTitle(FormType *const formP, Char *const newTitle)
 {
+	TRACE_ENTRY();
+
 	PEDANTIC(assert(formP));
 
 //	formP->title = newTitle;
@@ -452,14 +535,19 @@ void FrmSetTitle(FormType *const formP, Char *const newTitle)
 ;//			FrmDrawLabel(formP, labelP);
 	}
 
+	TRACE_EXIT();
+
 	UNUSED(newTitle);
 }
 
 void FrmShowObject(FormType* formP, UInt16 objIndex)
 {
+	if(!TRACE_ENTRY("TODO"))
+		LOG("TODO");
+
 	PEDANTIC(assert(formP));
 
-	LOG("TODO"); return;
+	TRACE_EXIT();
 
 	UNUSED(formP, objIndex);
 }

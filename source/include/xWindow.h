@@ -19,6 +19,7 @@ typedef struct window_manager_t* window_manager_p;
 /* **** */
 
 typedef struct window_manager_t {
+	WinHandle activeWindow;
 	WinHandle enterWindowID;
 	WinHandle exitWindowID;
 	WinHandle exitedWindowID;
@@ -39,6 +40,10 @@ void _WinSetClip(WinPtr windowP, const RectangleType* rP);
 
 void WindowMgrInit(void);
 void WinDrawWindow(WinPtr const windowP);
+void WinEnterWindowEvent(const struct _WinEnterEventType *const winEnter);
+void WinExitWindowEvent(const struct _WinExitEventType *const winExit);
 WinPtr WinGetNextWindow(WinPtr windowP);
 Boolean WinHandleEvent(EventPtr eventP);
 WinHandle WinSetDrawWindow(WinHandle winHandle);
+void WinSetEnabled(WinHandle const winHandle, const Boolean visible);
+void WinSetVisible(WinHandle const winHandle, const Boolean visible);
