@@ -509,6 +509,13 @@ static void* _mem_chunk_lock(mem_chunk_ref mc)
 	return(lock ? data : 0);
 }
 
+static UInt32 _mem_chunk_size(mem_chunk_ref mc)
+{
+	if(!mc) return(0);
+
+	return(mc->size);
+}
+
 static Err _mem_chunk_unlock(mem_chunk_ref mc)
 {
 	if(0 && memory_manager_config.trace.at.entry) {
@@ -535,7 +542,6 @@ static Err _mem_chunk_unlock(mem_chunk_ref mc)
 
 	return(errNone);
 }
-
 
 /* **** */
 
@@ -686,6 +692,15 @@ MemHandle MemHandleNew(const UInt32 size)
 	return(mc->handle);
 }
 
+UInt32 MemHandleSize(MemHandle const h)
+{
+	queue_search_handle_info_t hsi;
+	master_pointer_ref mp = _master_pointer__search__from_handle(&hsi, h);
+	mem_chunk_ref mc = mp ? mp->chunk : 0;
+
+	return(_mem_chunk_size(mc));
+}
+
 Err MemHandleUnlock(MemHandle const h)
 {
 	if(memory_manager_config.trace.at.entry) {
@@ -756,6 +771,18 @@ MemHandle MemPtrRecoverHandle(MemPtr const p)
 	}
 
 	return(0);
+}
+
+UInt32 MemPtrSize(MemPtr const p)
+{
+	if(memory_manager_config.trace.at.entry) {
+		LOG(">> p: 0x%016" PRIxPTR, (uintptr_t)p);
+	}
+
+	queue_search_chunk_info_t csi;
+	mem_chunk_ref mc = _mem_chunk__search__from_ptr(&csi, p);
+
+	return(_mem_chunk_size(mc));
 }
 
 Err MemPtrUnlock(MemPtr const p)
