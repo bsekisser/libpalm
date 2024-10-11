@@ -11,6 +11,7 @@
 
 #include "git/libbse/include/err_test.h"
 #include "git/libbse/include/log.h"
+#include "git/libbse/include/unused.h"
 
 /* **** */
 
@@ -34,6 +35,24 @@ static void __xcb_manager_globals_init(void)
 }
 
 /* **** */
+
+#define XCB_LOG_POINT(_r) _xcb_log_point(_r, # _r, __FUNCTION__, __LINE__)
+void _xcb_log_point(xcb_point_ref r, const char* name, const char* func, const unsigned line)
+{
+	printf("%s:%04u: ", func, line);
+
+	LOG_END("%s->(x: %d, y: %d)",
+		name, r->x, r->y);
+}
+
+#define XCB_LOG_RECTANGLE(_r) _xcb_log_rectangle(_r, # _r, __FUNCTION__, __LINE__)
+void _xcb_log_rectangle(xcb_rectangle_ref r, const char* name, const char* func, const unsigned line)
+{
+	printf("%s:%04u: ", func, line);
+
+	LOG_END("%s->(x: %d, y: %d, width: %u, height: %u)",
+		name, r->x, r->y, r->width, r->height);
+}
 
 static WinHandle _XcbPalmWindow(pxcb_window_p xw)
 { return(xw ? xw->palm.window : 0); }
@@ -111,6 +130,9 @@ pxcb_window_p XcbCreateWindow(WinPtr const windowP, const RectangleType* windowB
 
 		PEDANTIC(assert(pxcb_manager.screen));
 
+		LOGu(pxcb_manager.screen->width_in_pixels);
+		LOGu(pxcb_manager.screen->height_in_pixels);
+
 		if(!pxcb_manager.screen) return(0);
 	}
 
@@ -143,13 +165,23 @@ pxcb_window_p XcbCreateWindow(WinPtr const windowP, const RectangleType* windowB
 
 	LOG_RECTANGLE(windowBounds);
 
+	xw->scale.x = (screen->width_in_pixels / (windowBounds->extent.x - windowBounds->topLeft.x)) ?: 1;
+	xw->scale.y = (screen->height_in_pixels / (windowBounds->extent.y - windowBounds->topLeft.y)) ?: 1;
+
+	XCB_LOG_POINT(&xw->scale);
+
+	xcb_rectangle_t scaledBounds;
+	XcbWin2XcbScaledRectangle(windowBounds, &scaledBounds, &xw->scale);
+
+	XCB_LOG_RECTANGLE(&scaledBounds);
+
 	cookie = xcb_create_window_checked(connection,
 		screen->root_depth,
 //		XCB_COPY_FROM_PARENT,
 		xw->window,
 		screen->root,
-		windowBounds->topLeft.x, windowBounds->topLeft.y,
-		windowBounds->extent.x, windowBounds->extent.y,
+		scaledBounds.x, scaledBounds.y,
+		scaledBounds.width, scaledBounds.height,
 		frameWidth,
 		XCB_WINDOW_CLASS_INPUT_OUTPUT,
 		screen->root_visual,
@@ -230,6 +262,39 @@ pxcb_window_p XcbDrawWindow_start(WinPtr windowP)
 	}
 
 	return(xw);
+}
+
+void XcbScaleRectangle(xcb_rectangle_ref xr, xcb_point_ref scaleP)
+{
+	xcb_point_ref scale = scaleP ?: &pxcb_manager.drawWindow->scale;
+
+	XCB_LOG_POINT(scale);
+	XCB_LOG_RECTANGLE(xr);
+
+	xr->x *= scale->x;
+	xr->y *= scale->y;
+	xr->width *= scale->x;
+	xr->height *= scale->y;
+
+	XCB_LOG_RECTANGLE(xr);
+}
+
+void XcbWin2XcbRectandle(const RectangleType *const wr, xcb_rectangle_ref xr)
+{
+	LOG_RECTANGLE(wr);
+
+	xr->x = wr->topLeft.x;
+	xr->y = wr->topLeft.y;
+	xr->width = wr->extent.x;
+	xr->height = wr->extent.y;
+
+	XCB_LOG_RECTANGLE(xr);
+}
+
+void XcbWin2XcbScaledRectangle(const RectangleType *const wr, xcb_rectangle_ref xr, xcb_point_ref scale)
+{
+	XcbWin2XcbRectandle(wr, xr);
+	XcbScaleRectangle(xr, scale);
 }
 
 void XcbWinDeleteWindow(WinHandle winHandle, Boolean eraseIt)
@@ -325,12 +390,9 @@ void XcbWinEraseRectangle(const RectangleType* rP, UInt16 cornerDiam)
 		LOG_END("(0x%08x)", xDrawWindow);
 	}
 
-	xcb_rectangle_t xr[] = {
-		{
-			rP->topLeft.x, rP->topLeft.y,
-			rP->extent.x, rP->extent.y,
-		},
-	};
+	xcb_rectangle_t xr;
+
+	XcbWin2XcbScaledRectangle(rP, &xr, 0);
 
 	xcb_gcontext_t gc = xcb_generate_id(connection);
 	uint32_t mask = XCB_GC_BACKGROUND;
@@ -345,8 +407,7 @@ void XcbWinEraseRectangle(const RectangleType* rP, UInt16 cornerDiam)
 	}
 
 	cookie = xcb_poly_rectangle_checked(connection, xDrawWindow,
-//		drawWindow->background, 1, xr);
-		gc, 1, xr);
+		drawWindow->foreground, 1, &xr);
 
 	if((error = xcb_request_check(connection, cookie))) {
 		LOG("poly_rectangle_failed: %d", error->error_code);
@@ -388,6 +449,21 @@ void XcbWinRemoveWindow(WinHandle h2window)
 	_XcbRemoveWindow(xw, lhs);
 }
 
+void XcbWinScalePoint(PointType *const pointP, Boolean ceiling)
+{
+	xcb_point_ref scale = &pxcb_manager.drawWindow->scale;
+
+	pointP->x *= scale->x;
+	pointP->y *= scale->y;
+
+	UNUSED(ceiling);
+}
+
+void XcbWinScaleRectangle(RectangleType *const rectP)
+{
+	XcbWinScalePoint(&rectP->topLeft, 0);
+	XcbWinScalePoint(&rectP->extent, 0);
+}
 
 WinPtr XcbWinSetActiveWindow(WinHandle winHandle)
 {
