@@ -6,6 +6,7 @@
 
 #include "UIResources.h"
 #include "xRect.h"
+#include "xMemoryMgr.h"
 #include "xWindow.h"
 
 /* **** */
@@ -80,12 +81,12 @@ FormType* FrmInitForm(UInt16 rscID)
 	if(config.info.form.initForm)
 		LOGu(f.numObjects);
 
-	FormPtr formP = calloc(1, sizeof(FormType));
+	FormPtr formP = MemPtrNewClear(sizeof(FormType));
 	ERR_NULL(formP);
 
 	memcpy(formP, &f, sizeof(FormType));
 
-	formP->objects = calloc(f.numObjects, sizeof(FormObjListType));
+	formP->objects = MemPtrNewClear(f.numObjects * sizeof(FormObjListType));
 	ERR_NULL(formP->objects);
 
 	for(unsigned i = 0; i < f.numObjects; i++)

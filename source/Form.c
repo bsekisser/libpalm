@@ -144,6 +144,9 @@ void FrmDeleteForm(FormType* formP)
 		}
 	}
 
+	MemPtrFree(formP->objects);
+	formP->objects = 0;
+
 	if(formP->helpRscId)
 		LOG("TODO: delete form help");
 

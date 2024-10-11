@@ -8,6 +8,7 @@
 #include "sdk/include/Core/System/SystemMgr.h"
 #include "sdk/include/Libraries/PalmOSGlue/WinGlue.h"
 #include "xEvent.h"
+#include "xMemoryMgr.h"
 
 /* **** */
 
@@ -90,7 +91,7 @@ WinHandle WinCreateWindow(const RectangleType* bounds, FrameType frame,
 	if(error)
 		*error = errNone;
 
-	WinPtr windowP = calloc(1, sizeof(WindowType));
+	WinPtr windowP = MemPtrNewClear(sizeof(WindowType));
 	if(!windowP) {
 		*error = sysErrNoFreeResource;
 		return(0);
@@ -109,7 +110,7 @@ void WinDeleteWindow(WinHandle winHandle, Boolean eraseIt)
 
 	XcbWinDeleteWindow(winHandle, eraseIt);
 
-	free(winHandle);
+	MemPtrFree(winHandle);
 }
 
 void WinDrawBitmap(BitmapPtr bitmapP, Coord x, Coord y)

@@ -735,6 +735,20 @@ Err MemMove(void *const dst, const void* src, const Int32 n)
 	memmove(dst, src, n); return(0);
 }
 
+Err MemPtrFree(const MemPtr p)
+{
+	if(memory_manager_config.trace.at.entry) {
+		LOG(">> p: 0x%016" PRIxPTR, (uintptr_t)p);
+	}
+
+	queue_search_chunk_info_t csi;
+	mem_chunk_ref mc = _mem_chunk__search__from_ptr(&csi, p);
+	if(!mc) return(memErrInvalidParam);
+
+	free(mc);
+	return(errNone);
+}
+
 MemPtr MemPtrNew(const UInt32 size)
 {
 	if(memory_manager_config.trace.at.entry) {
@@ -747,6 +761,15 @@ MemPtr MemPtrNew(const UInt32 size)
 	DEBUG(MemChunkValidate(mc, data, 0));
 
 	return(data);
+}
+
+MemPtr MemPtrNewClear(const size_t size)
+{
+	MemPtr p = MemPtrNew(size);
+	if(p)
+		memset(p, 0, size);
+
+	return(p);
 }
 
 MemHandle MemPtrRecoverHandle(MemPtr const p)
