@@ -154,14 +154,18 @@ void WinDrawBitmap(BitmapPtr bitmapP, Coord x, Coord y)
 void WinDrawChars(const Char* chars, Int16 len,
 	Coord x, Coord y)
 {
-	PEDANTIC(assert(chars));
+	if(TRACE_ENTRY_START()) {
+		_LOG_("x: %i, y: %i", x, y);
+		LOG_END(", chars: 0x%016" PRIxPTR "(%s)", (uintptr_t)chars, chars ?: "");
+	}
 
-	LOG_START(">> TODO -- ");
-	LOG_END("chars: 0x%016" PRIxPTR "(%s)", (uintptr_t)chars, chars ?: "");
+	PEDANTIC(assert(chars));
 
 	if(!chars) return;
 
-	UNUSED(len, x, y);
+	XcbWinDrawChars(chars, len, x, y);
+
+	TRACE_EXIT();
 }
 
 void WinDrawLine(Coord x1, Coord y1, Coord x2, Coord y2)

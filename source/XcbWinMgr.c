@@ -335,10 +335,26 @@ pxcb_window_p XcbCreateWindow(WinPtr const windowP, const RectangleType* windowB
 
 	/* **** foreground */
 
+	const char* font_name = "variable";
+
+	xcb_font_t font = xcb_generate_id(connection);
+	cookie = xcb_open_font_checked(connection, font,
+		strlen(font_name), font_name);
+
+	if((error = xcb_request_check(connection, cookie))) {
+		LOG_ERR("unable to open font (%s): %d", font_name, error->error_code);
+		xcb_disconnect(connection);
+		exit(-1);
+	}
+
 	xw->foreground = xcb_generate_id(connection);
-	mask = XCB_GC_FOREGROUND;
+	mask = XCB_GC_FOREGROUND
+		| XCB_GC_BACKGROUND
+		| XCB_GC_FONT;
 	valueP = values;
 	*valueP++ = screen->black_pixel;
+	*valueP++ = screen->white_pixel;
+	*valueP++ = font;
 
 	cookie = xcb_create_gc_checked(connection, xw->foreground, xw->window, mask, values);
 
@@ -347,6 +363,15 @@ pxcb_window_p XcbCreateWindow(WinPtr const windowP, const RectangleType* windowB
 		xcb_disconnect(connection);
 		exit(-1);
 	}
+
+	cookie = xcb_close_font_checked(connection, font);
+
+	if((error = xcb_request_check(connection, cookie))) {
+		LOG_ERR("unable to close font(%s): %d", font_name, error->error_code);
+		xcb_disconnect(connection);
+		exit(-1);
+	}
+
 
 	/* **** */
 
@@ -392,6 +417,14 @@ int XcbExposeEvent(const xcb_expose_event_t* ev)
 	TRACE_EXIT();
 
 	return(1);
+}
+
+void XcbScalePoint(xcb_point_ref xp, xcb_point_ref scaleP)
+{
+	xcb_point_ref scale = scaleP ?: &pxcb_manager.drawWindow->scale;
+
+	xp->x *= scale->x;
+	xp->y *= scale->y;
 }
 
 void XcbScaleRectangle(xcb_rectangle_ref xr, xcb_point_ref scaleP)
@@ -503,6 +536,36 @@ failConnectionExit:
 	_XcbRemoveWindow(xw, lhs);
 
 	free(xw);
+}
+
+void XcbWinDrawChars(const char* chars, size_t len, const unsigned x, const unsigned y)
+{
+	TRACE_ENTRY();
+
+	xcb_connection_p connection = pxcb_manager.connection;
+	pxcb_window_ref drawWindow = pxcb_manager.drawWindow;
+
+	if(!connection) return;
+	if(!drawWindow) return;
+
+	PEDANTIC(assert(drawWindow->foreground));
+
+	xcb_point_t xpt = { .x = x, .y = y};
+	XcbScalePoint(&xpt, 0);
+
+	xcb_void_cookie_t cookie = xcb_image_text_8_checked(connection,
+		len, drawWindow->window, drawWindow->foreground, xpt.x, xpt.y, chars);
+
+	xcb_generic_error_p error = 0;
+	if((error = xcb_request_check(connection, cookie))) {
+		LOG("call to xcb_image_text_8 failed: %d", error->error_code);
+		xcb_disconnect(connection);
+		exit(-1);
+	}
+
+	xcb_flush(connection);
+
+	TRACE_EXIT();
 }
 
 int XcbWinEnterWindow(WinHandle const enterWindow, WinHandle const exitWindow)
