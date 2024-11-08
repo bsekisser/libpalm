@@ -679,6 +679,7 @@ WinPtr XcbWinGetNextWindow(WinPtr windowP)
 
 int XcbWinMapWindow(WinHandle const theWindow)
 {
+	int handled = 0;
 	pxcb_window_p xw = 0;
 
 	if((_XcbWinHandle(theWindow, &xw, 0))) {
@@ -687,7 +688,7 @@ int XcbWinMapWindow(WinHandle const theWindow)
 			_XcbMapWindow(xw);
 
 			xcb_generic_event_t* e;
-			for(;;) {
+			for(;!handled;) {
 				e = xcb_wait_for_event(pxcb_manager.connection);
 				switch(e->response_type & ~0x80) {
 					case XCB_EXPOSE: {
@@ -696,7 +697,7 @@ int XcbWinMapWindow(WinHandle const theWindow)
 							pxcb_manager.activeWindow = xw;
 							pxcb_manager.drawWindow = xw;
 
-							return(XcbExposeEvent(ev));
+							handled = XcbExposeEvent(ev);
 						}
 					}break;
 				}
@@ -760,6 +761,7 @@ WinPtr XcbWinSetDrawWindow(WinHandle winHandle)
 
 int XcbWinUnmapWindow(WinHandle const theWindow)
 {
+	int handled = 0;
 	pxcb_window_p xw = 0;
 
 	if(_XcbWinHandle(theWindow, &xw, 0)) {
@@ -769,13 +771,13 @@ int XcbWinUnmapWindow(WinHandle const theWindow)
 			_XcbUnmapWindow(xw);
 
 			xcb_generic_event_t* e;
-			for(;;) {
+			for(;!handled;) {
 				e = xcb_wait_for_event(pxcb_manager.connection);
 				switch(e->response_type & ~0x80) {
 					case XCB_UNMAP_NOTIFY: {
 						xcb_unmap_notify_event_t* ev = (xcb_unmap_notify_event_t*)e;
 						if(ev->window == xw->window)
-							return(XcbUnmapNotifyEvent(ev));
+							handled = XcbUnmapNotifyEvent(ev);
 					}break;
 				}
 				free(e);
