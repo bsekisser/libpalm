@@ -231,7 +231,7 @@ MemHandle resource_get1(resource_map_h const h2map, const uint32_t type, const u
 
 	// get reference entry
 	resource_reference_entry_p const rre = _resource_reference_entry_for_id(resID, rte, map);
-	if(!rte) goto failExit;
+	if(!rre) goto failExit;
 
 	// get resource data
 	resource_data_p const rd = _resource_data(rre, map);
