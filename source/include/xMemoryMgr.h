@@ -81,3 +81,4 @@ Boolean MasterPointerValidate(master_pointer_ref mp, mem_chunk_ref mc);
 Boolean MemChunkValidate(mem_chunk_ref mc, MemPtr const p, master_pointer_ref mp);
 MemPtr MemPtrNewClear(const size_t size);
 int mem_handle_resource(MemHandle const h, const unsigned set_resource, const unsigned value);
+Boolean MemValidateHandle(MemHandle const h);

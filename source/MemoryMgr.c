@@ -39,11 +39,14 @@ struct config_memory_manager_t {
 	unsigned info:1;
 }memory_manager_config;
 
+#define TRACE memory_manager_config.trace
+
 typedef struct queue_search_chunk_info_t* queue_search_chunk_info_p;
 typedef queue_search_chunk_info_p const queue_search_chunk_info_ref;
 typedef struct queue_search_chunk_info_t {
 	union {
 		void* data;
+		MemHandle handle;
 		MemPtr pointer;
 		master_pointer_p master_pointer;
 	};
@@ -372,11 +375,14 @@ static mem_chunk_p _mem_chunk__search__from_handle(queue_search_chunk_info_ref c
 	master_pointer_p mp = 0;
 
 	if(need_lhs) {
+		csi->chunk = 0;
+		csi->handle = h;
+
 		queue_iterator_search_t qis;
 		queue_iterator_search_init(&qis, &chunk_queue, __queue_iterator_search__chunk__from_handle);
 		if(1 == queue_iterator_search(&qis, csi)) {
 			mc = csi->chunk;
-			mp = mc->master_pointer;
+			mp = mc ? mc->master_pointer : 0;
 		}
 	} else {
 		queue_search_handle_info_t hsi;
@@ -464,9 +470,10 @@ static Boolean _mem_chunk__validate(mem_chunk_ref mc, MemPtr const p, master_poi
 static void _mem_chunk_free(mem_chunk_ref mc, qelem_ref lhs)
 {
 	PEDANTIC(assert(mc));
+	PEDANTIC(assert(!mc->free));
 
 	if(!mc) return;
-	if(mc->lock) return;
+	if(mc->free) return;
 
 //	mc->alloc = 0;
 	mc->free = 1;
@@ -745,7 +752,7 @@ Err MemPtrFree(const MemPtr p)
 	mem_chunk_ref mc = _mem_chunk__search__from_ptr(&csi, p);
 	if(!mc) return(memErrInvalidParam);
 
-	free(mc);
+	_mem_chunk_free(mc, csi.lhs);
 	return(errNone);
 }
 
@@ -823,4 +830,21 @@ Err MemPtrUnlock(MemPtr const p)
 		return(memErrInvalidParam);
 
 	return(_mem_chunk_unlock(mc));
+}
+
+Boolean MemValidateHandle(MemHandle const h)
+{
+	TRACE_ENTRY("h: 0x%016" PRIxPTR, (uintptr_t)h);
+
+	PEDANTIC(assert(h));
+
+	queue_search_handle_info_t hsi;
+	master_pointer_ref mp = _master_pointer__search__from_handle(&hsi, h);
+	mem_chunk_ref mc = mp ? mp->chunk : 0;
+
+	Boolean valid = _master_pointer__validate(mp, mc)
+		&& _mem_chunk__validate(mc, 0, mp);
+
+	TRACE_EXIT();
+	return(valid);
 }
