@@ -1,6 +1,7 @@
 #include "config.h"
 
 #include "xForm.h"
+#include "xUIResources.h"
 #include "xWindow.h"
 
 /* **** */
@@ -9,6 +10,7 @@
 
 /* **** */
 
+#include "git/libbse/include/err_test.h"
 #include "git/libbse/include/log.h"
 #include "git/libbse/include/unused.h"
 
@@ -473,7 +475,26 @@ void FrmHideObject(FormType* formP, UInt16 objIndex)
 	UNUSED(formP, objIndex);
 }
 
-//FormType* FrmInitForm(UInt16 rscID)
+FormType* FrmInitForm(UInt16 rscID)
+{
+	FormPtr formP = ResLoadForm(rscID);
+	ERR_NULL(formP);
+
+	WinPtr fw = &formP->window;
+
+	/* **** */
+
+	formP->attr.usable = 1;
+	formP->handler = 0;
+	formP->focus = 0;
+	fw->windowFlags.dialog = 1;
+
+	/* **** */
+
+	_WinCreateWindow(fw, &fw->windowBounds, simpleFrame, fw->windowFlags.modal, true);
+
+	return(formP);
+}
 
 void FrmSetActiveForm(FormType *const formP)
 {

@@ -67,9 +67,10 @@ void _WinCreateWindow(WinPtr windowP, const RectangleType* bounds, FrameType fra
 
 	RectangleType *const windowBounds = &windowP->windowBounds;
 
-	if(bounds)
-		RctCopyRectangle(bounds, windowBounds);
-	else
+	if(bounds) {
+		if(bounds != windowBounds)
+			RctCopyRectangle(bounds, windowBounds);
+	} else
 		RectangleTypeInit(windowBounds);
 
 	_WinSetClip(windowP, windowBounds);
