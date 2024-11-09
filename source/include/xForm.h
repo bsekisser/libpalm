@@ -22,4 +22,5 @@ extern FormPtr current_form;
 
 /* **** */
 
+void FrmDrawLabel(FormLabelType *const label);
 FormPtr FrmGetNextForm(FormPtr formP);

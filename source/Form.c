@@ -232,11 +232,31 @@ void FrmDrawForm(FormType* formP)
 
 	WinDrawWindow(form_window);
 
-	LOG("TODO");
+	for(unsigned i = 0; i < formP->numObjects; i++)
+	{
+		FormObjListTypePtr const objectP = &formP->objects[i];
+		const FormObjectKind objectType = objectP->objectType;
+
+		switch(objectType) {
+			case frmLabelObj:
+				FrmDrawLabel(objectP->object.label);
+				break;
+			default:
+				LOG("unhandled object type %u", objectType);
+				break;
+		}
+	}
 
 	WinSetDrawWindow(saved_draw_window);
 
 	TRACE_EXIT();
+}
+
+void FrmDrawLabel(FormLabelType *const label)
+{
+	const int len = strlen(label->text);
+
+	WinDrawChars(label->text, len, label->pos.x, label->pos.y);
 }
 
 FormType* FrmGetActiveForm(void)
