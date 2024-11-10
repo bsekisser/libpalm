@@ -90,6 +90,9 @@ void* ResLoadForm(const uint16_t rscID)
 			case 'tLBL':
 				_ResLoadFormObject(objectP, frmLabelObj, objID, ResLoadFormLabel);
 				break;
+			case 'tTTL':
+				_ResLoadFormObject(objectP, frmTitleObj, objID, ResLoadFormTitle);
+				break;
 			case 'Talt':
 			case 'tBTN':
 			case 'tCBX':
@@ -104,7 +107,6 @@ void* ResLoadForm(const uint16_t rscID)
 			case 'tSCL':
 			case 'tSLT':
 			case 'tTBL':
-			case 'tTTL':
 			default:
 				LOGu(objID);
 				LOGx("0x%08x (%s)", objType, (char*)&objTypeString);
@@ -131,7 +133,7 @@ void* ResLoadFormLabel(const uint16_t rscID)
 	FormLabelRef label = MemPtrNewClear(sizeof(FormLabelType));
 	PEDANTIC(assert(label));
 
-	MemPtr l = MemHandleLock(h2label);
+	MemPtr const l = MemHandleLock(h2label);
 	PEDANTIC(assert(l));
 
 	/* **** */
@@ -145,7 +147,7 @@ void* ResLoadFormLabel(const uint16_t rscID)
 
 	size_t label_len = 1 + strlen(p);
 
-	MemPtr text = MemPtrNewClear(1 + label_len);
+	MemPtr const text = MemPtrNewClear(1 + label_len);
 	PEDANTIC(assert(text));
 
 	label->text = text;
@@ -164,4 +166,39 @@ void* ResLoadFormLabel(const uint16_t rscID)
 	DmReleaseResource(h2label);
 
 	return(label);
+}
+
+void* ResLoadFormTitle(const uint16_t rscID)
+{
+	MemHandle const h2title = DmGetResource('tTTL', rscID);
+	PEDANTIC(assert(h2title));
+
+	if(!h2title) LOG_ACTION(return(0));
+
+	FormTitleRef title = MemPtrNewClear(sizeof(FormTitleType));
+	PEDANTIC(assert(title));
+
+	MemPtr const t = MemHandleLock(h2title);
+	PEDANTIC(assert(t));
+
+	/* **** */
+
+	size_t len = 1 + strlen(t);
+
+	title->text = MemPtrNewClear(1 + len);
+	PEDANTIC(assert(title->text));
+
+	strncpy(title->text, t, len);
+
+	if(1) {
+		LOG_START("id: 0x%04x", rscID);
+		LOG_END(", text: %s", title->text);
+	};
+
+	/* **** */
+
+	MemHandleUnlock(h2title);
+	DmReleaseResource(h2title);
+
+	return(title);
 }

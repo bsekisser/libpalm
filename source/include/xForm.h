@@ -24,6 +24,9 @@ typedef FormObjectPtr const FormObjectRef;
 
 typedef FormPtr const FormRef;
 
+typedef struct FormTitleTag* FormTitlePtr;
+typedef FormTitlePtr const FormTitleRef;
+
 /* **** */
 
 extern FormPtr current_form;
@@ -31,5 +34,7 @@ extern FormPtr current_form;
 /* **** */
 
 void FrmDeleteLabel(FormLabelRef label);
+void FrmDeleteTitle(FormTitleRef title);
 void FrmDrawLabel(FormLabelRef label);
+void FrmDrawTitle(FormTitleRef title);
 FormPtr FrmGetNextForm(FormRef formP);

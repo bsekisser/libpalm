@@ -155,7 +155,10 @@ void FrmDeleteForm(FormRef formP)
 
 		switch(objectType) {
 			case frmLabelObj:
-				FrmDeleteLabel(formObject->object.label);
+				FrmDeleteLabel(object->label);
+				break;
+			case frmTitleObj:
+				FrmDeleteTitle(object->title);
 				break;
 			default:
 				LOG_START("TODO: delete formObject: 0x%016" PRIxPTR, (uintptr_t)formObject);
@@ -184,6 +187,12 @@ void FrmDeleteLabel(FormLabelRef label)
 {
 	MemPtrFree(label->text);
 	MemPtrFree(label);
+}
+
+void FrmDeleteTitle(FormTitleRef title)
+{
+	MemPtrFree(title->text);
+	MemPtrFree(title);
 }
 
 Boolean FrmDispatchEvent(EventPtr eventP)
@@ -258,6 +267,9 @@ void FrmDrawForm(FormRef formP)
 			case frmLabelObj:
 				FrmDrawLabel(object->label);
 				break;
+			case frmTitleObj:
+				FrmDrawTitle(object->title);
+				break;
 			default:
 				LOG("unhandled object type %u", objectType);
 				break;
@@ -274,6 +286,14 @@ void FrmDrawLabel(FormLabelRef label)
 	const int len = strlen(label->text);
 
 	WinDrawChars(label->text, len, label->pos.x, label->pos.y);
+}
+
+void FrmDrawTitle(FormTitleRef title) // TODO
+{
+	const int len = strlen(title->text);
+
+//	WinDrawChars(title->text, len, title->rect.topLeft.x, title->rect.topLeft.y);
+	WinDrawChars(title->text, len, 0, 2);
 }
 
 FormPtr FrmGetActiveForm(void)
