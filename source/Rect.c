@@ -87,3 +87,11 @@ void RctCopyRectangle(const RectangleType* srcRectP, RectangleType* dstRectP)
 
 	memcpy(dstRectP, srcRectP, sizeof(RectangleType));
 }
+
+void RctInsetRectangle(RectangleType *const rP, const Coord insetAmt)
+{
+	rP->topLeft.x += insetAmt;
+	rP->topLeft.y += insetAmt;
+	rP->extent.x += (insetAmt << 1);
+	rP->extent.y += (insetAmt << 1);
+}
