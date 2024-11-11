@@ -568,6 +568,75 @@ void XcbWinDrawChars(const char* chars, size_t len, const unsigned x, const unsi
 	TRACE_EXIT();
 }
 
+void XcbWinDrawRectangle(const RectangleType* rP, UInt16 cornerDiam, WinDrawOperation mode)
+{
+	PEDANTIC(assert(rP));
+
+	xcb_void_cookie_t cookie;
+	xcb_generic_error_p error;
+
+	if(cornerDiam)
+		LOG("TODO: corerDiam: %u", cornerDiam);
+
+	LOG_RECTANGLE(rP);
+
+	xcb_connection_p connection = pxcb_manager.connection;
+	if(!pxcb_manager.connection)
+		LOG_ACTION(return);
+
+	pxcb_window_p drawWindow = pxcb_manager.drawWindow;
+	if(!drawWindow) LOG_ACTION(return);
+
+	xcb_window_t xDrawWindow = drawWindow->window;
+
+	if(0) {
+		LOG_START("connection: 0x%016" PRIxPTR, (uintptr_t)connection);
+		_LOG_(", drawWindow: 0x%016" PRIxPTR, (uintptr_t)drawWindow);
+		LOG_END("(0x%08x)", xDrawWindow);
+	}
+
+	PEDANTIC(assert(connection));
+	PEDANTIC(assert(drawWindow));
+	PEDANTIC(assert(xDrawWindow));
+	PEDANTIC(assert(drawWindow->background));
+	PEDANTIC(assert(drawWindow->foreground));
+	PEDANTIC(assert(drawWindow->flags.exposed));
+
+	if(!(connection && drawWindow)) return;
+
+	if(0) {
+		LOG_START("connection: 0x%016" PRIxPTR, (uintptr_t)connection);
+		_LOG_(", drawWindow: 0x%016" PRIxPTR, (uintptr_t)drawWindow);
+		LOG_END("(0x%08x)", xDrawWindow);
+	}
+
+	xcb_rectangle_t xr;
+
+	XcbWin2XcbScaledRectangle(rP, &xr, 0);
+
+	switch(mode) {
+		case winErase:
+			cookie = xcb_poly_fill_rectangle_checked(connection, xDrawWindow,
+				drawWindow->background, 1, &xr);
+			break;
+		case winPaint:
+			cookie = xcb_poly_rectangle_checked(connection, xDrawWindow,
+				drawWindow->foreground, 1, &xr);
+			break;
+		default:
+			LOG("unhandled draw mode: %u", mode);
+			break;
+	}
+
+	if((error = xcb_request_check(connection, cookie))) {
+		LOG("poly_rectangle_failed: %d", error->error_code);
+		xcb_disconnect(connection);
+		exit(-1);
+	}
+
+	xcb_flush(connection);
+}
+
 int XcbWinEnterWindow(WinHandle const enterWindow, WinHandle const exitWindow)
 {
 	if(0) {

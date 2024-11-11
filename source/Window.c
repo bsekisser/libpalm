@@ -182,11 +182,7 @@ void WinDrawRectangle(const RectangleType* rP, UInt16 cornerDiam)
 {
 	PEDANTIC(assert(rP));
 
-	LOG("TODO"); return;
-
-	if(!rP) return;
-
-	UNUSED(cornerDiam);
+	XcbWinDrawRectangle(rP, cornerDiam, winPaint);
 }
 
 void WinDrawWindow(WinPtr const windowP)
@@ -230,7 +226,7 @@ void WinEraseRectangle(const RectangleType* rP, UInt16 cornerDiam)
 {
 	PEDANTIC(assert(rP));
 
-	XcbWinEraseRectangle(rP, cornerDiam);
+	XcbWinDrawRectangle(rP, cornerDiam, winErase);
 }
 
 void WinExitWindowEvent(const struct _WinExitEventType *const winExit)
