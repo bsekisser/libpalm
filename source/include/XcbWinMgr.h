@@ -79,6 +79,7 @@ pxcb_window_p XcbDrawWindow_start(WinPtr windowP);
 int XcbExposeEvent(const xcb_expose_event_t* ev);
 void XcbScaleRectangle(xcb_rectangle_ref xr, xcb_point_ref scaleP);
 int XcbUnmapNotifyEvent(const xcb_unmap_notify_event_t* ev);
+void XcbWin2XcbRectandle(const RectangleType *const wr, xcb_rectangle_ref xr);
 void XcbWin2XcbScaledRectangle(const RectangleType *const wr, xcb_rectangle_ref xr, xcb_point_ref scale);
 void XcbWinDeleteWindow(WinHandle winHandle, Boolean eraseIt);
 void XcbWinDrawChars(const char* chars, size_t len, const unsigned x, const unsigned y);
