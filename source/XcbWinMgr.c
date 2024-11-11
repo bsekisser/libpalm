@@ -289,8 +289,8 @@ pxcb_window_p XcbCreateWindow(WinPtr const windowP, const RectangleType* windowB
 
 //	LOG_RECTANGLE(windowBounds);
 
-	xw->scale.x = (screen->width_in_pixels / (windowBounds->extent.x - windowBounds->topLeft.x)) ?: 1;
-	xw->scale.y = (screen->height_in_pixels / (windowBounds->extent.y - windowBounds->topLeft.y)) ?: 1;
+	xw->scale.x = (screen->width_in_pixels / (windowBounds->extent.x - windowBounds->topLeft.x)) / 2 ?: 1;
+	xw->scale.y = (screen->height_in_pixels / (windowBounds->extent.y - windowBounds->topLeft.y)) / 2 ?: 1;
 
 //	XCB_LOG_POINT(&xw->scale);
 
@@ -423,8 +423,8 @@ void XcbScalePoint(xcb_point_ref xp, xcb_point_ref scaleP)
 {
 	xcb_point_ref scale = scaleP ?: &pxcb_manager.drawWindow->scale;
 
-	xp->x *= scale->x;
-	xp->y *= scale->y;
+	xp->x *= scale->x ?: 1;
+	xp->y *= scale->y ?: 1;
 }
 
 void XcbScaleRectangle(xcb_rectangle_ref xr, xcb_point_ref scaleP)
@@ -434,10 +434,10 @@ void XcbScaleRectangle(xcb_rectangle_ref xr, xcb_point_ref scaleP)
 //	XCB_LOG_POINT(scale);
 //	XCB_LOG_RECTANGLE(xr);
 
-	xr->x *= scale->x;
-	xr->y *= scale->y;
-	xr->width *= scale->x;
-	xr->height *= scale->y;
+	xr->x *= scale->x ?: 1;
+	xr->y *= scale->y ?: 1;
+	xr->width *= scale->x ?: 1;
+	xr->height *= scale->y ?: 1;
 
 //	XCB_LOG_RECTANGLE(xr);
 }

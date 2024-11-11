@@ -6,6 +6,7 @@
 #define ALLOW_ACCESS_TO_INTERNALS_OF_WINDOWS
 
 #include "DataMgr.h"
+#include "xControl.h"
 #include "xForm.h"
 #include "xMemoryMgr.h"
 #include "xRect.h"
@@ -87,6 +88,9 @@ void* ResLoadForm(const uint16_t rscID)
 		const uint32_t objTypeString[2] = { htole32(be32toh(objType)), 0 };
 
 		switch(objType) {
+			case 'tBTN':
+				_ResLoadFormObject(objectP, frmControlObj, objID, ResLoadFormButton);
+				break;
 			case 'tLBL':
 				_ResLoadFormObject(objectP, frmLabelObj, objID, ResLoadFormLabel);
 				break;
@@ -94,7 +98,6 @@ void* ResLoadForm(const uint16_t rscID)
 				_ResLoadFormObject(objectP, frmTitleObj, objID, ResLoadFormTitle);
 				break;
 			case 'Talt':
-			case 'tBTN':
 			case 'tCBX':
 			case 'tFBM':
 			case 'tFLD':
@@ -121,6 +124,46 @@ void* ResLoadForm(const uint16_t rscID)
 	DmReleaseResource(h2fr);
 
 	return(formP);
+}
+
+void* ResLoadFormButton(const uint16_t rscID)
+{
+	MemHandle const h2button = DmGetResource('tBTN', rscID);
+	PEDANTIC(assert(h2button));
+
+	if(!h2button) LOG_ACTION(return(0));
+
+	ControlPtr const btn = MemPtrNewClear(sizeof(ControlType));
+	PEDANTIC(assert(btn));
+
+	MemPtr const b = MemHandleLock(h2button);
+	PEDANTIC(assert(b));
+
+	void* p = b;
+
+	/* **** */
+
+	p = ldu16be(&btn->id, p);
+	p = RectangleTypeLoad(&btn->bounds, p);
+	btn->attr.usable = uint8(&p); p++;
+	btn->attr.leftAnchor = uint8(&p); p++;
+	const int frame = uint8(&p); p++;
+	const int nonBoldFrame = uint8(&p); p++;
+	btn->attr.frame = frame ? (nonBoldFrame ? standardButtonFrame : boldButtonFrame) : noButtonFrame;
+	btn->font = uint8(&p);
+	const int len = strlen(p);
+	btn->text = MemPtrNewClear(len);
+	strncpy(btn->text, p, len);
+
+	btn->style = buttonCtl;
+	((control_reserved_flags_ref)&btn->reserved)->textFree = 1;
+
+	/* **** */
+
+	MemHandleUnlock(h2button);
+	DmReleaseResource(h2button);
+
+	return(btn);
 }
 
 void* ResLoadFormLabel(const uint16_t rscID)

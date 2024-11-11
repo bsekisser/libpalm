@@ -10,6 +10,7 @@
 /* **** */
 
 #include <assert.h>
+#include <string.h>
 
 /* **** */
 
@@ -20,8 +21,34 @@ void CtlDrawControl(ControlType* controlP)
 	LOG("TODO");
 
 	if(!controlP) return;
+	if(!controlP->attr.usable) return;
 
 	controlP->attr.visible = true;
+
+	switch(controlP->attr.frame) {
+		case boldButtonFrame:
+			RctInsetRectangle(&controlP->bounds, -1);
+			WinDrawRectangle(&controlP->bounds, 0);
+			RctInsetRectangle(&controlP->bounds, 1);
+		__attribute__((fallthrough));
+		case standardButtonFrame:
+			WinDrawRectangle(&controlP->bounds, 0);
+		case noButtonFrame:
+			break;
+		case rectangleButtonFrame:
+			LOG("TODO");
+			break;
+	}
+
+	if(controlP->text) {
+		const int len = strlen(controlP->text);
+
+		int ascent = 12 >> 1;
+		int width = len * 12;
+
+		WinDrawChars(controlP->text, len,
+			controlP->bounds.topLeft.x + (width >> 1), controlP->bounds.topLeft.y + ascent);
+	}
 }
 
 Int16 CtlGetValue(const ControlType* controlP)

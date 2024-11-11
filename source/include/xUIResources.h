@@ -10,5 +10,6 @@
 
 /* **** */
 
+void* ResLoadFormButton(const uint16_t rscID);
 void* ResLoadFormLabel(const uint16_t rscID);
 void* ResLoadFormTitle(const uint16_t rscID);

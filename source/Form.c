@@ -3,6 +3,7 @@
 #define ALLOW_ACCESS_TO_INTERNALS_OF_FORMS
 #define ALLOW_ACCESS_TO_INTERNALS_OF_WINDOWS
 
+#include "xControl.h"
 #include "xEvent.h"
 #include "xForm.h"
 #include "xWindow.h"
@@ -139,6 +140,16 @@ UInt16 FrmCustomAlert(UInt16 alertID,
 	UNUSED(alertID, s1, s2, s3);
 }
 
+void FrmDeleteControl(ControlPtr const ctl)
+{
+	control_reserved_flags_ref reserved = (control_reserved_flags_ref)&ctl->reserved;
+
+	if(ctl->text && reserved->textFree)
+		MemPtrFree(ctl->text);
+
+	MemPtrFree(ctl);
+}
+
 void FrmDeleteForm(FormRef formP)
 {
 	TRACE_ENTRY();
@@ -154,6 +165,9 @@ void FrmDeleteForm(FormRef formP)
 		FormObjectKind objectType = formObject->objectType;
 
 		switch(objectType) {
+			case frmControlObj:
+				FrmDeleteControl(object->control);
+				break;
 			case frmLabelObj:
 				FrmDeleteLabel(object->label);
 				break;
@@ -264,6 +278,9 @@ void FrmDrawForm(FormRef formP)
 		const FormObjectKind objectType = formObject->objectType;
 
 		switch(objectType) {
+			case frmControlObj:
+				CtlDrawControl(object->control);
+				break;
 			case frmLabelObj:
 				FrmDrawLabel(object->label);
 				break;
