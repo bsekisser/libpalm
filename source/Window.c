@@ -172,11 +172,7 @@ void WinDrawChars(const Char* chars, Int16 len,
 }
 
 void WinDrawLine(Coord x1, Coord y1, Coord x2, Coord y2)
-{
-	LOG("TODO"); return;
-
-	UNUSED(x1, y1, x2, y2);
-}
+{ XcbWinDrawLine(x1, y1, x2, y2, winPaint); }
 
 void WinDrawRectangle(const RectangleType* rP, UInt16 cornerDiam)
 {

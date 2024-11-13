@@ -568,6 +568,79 @@ void XcbWinDrawChars(const char* chars, size_t len, const unsigned x, const unsi
 	TRACE_EXIT();
 }
 
+void XcbWinDrawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2, WinDrawOperation mode)
+{
+	xcb_void_cookie_t cookie;
+	xcb_generic_error_p error;
+
+	if(1) {
+		LOG("left: %u, top: %u, right: %u, bottom: %u",
+			x1, y1, x2, y2);
+	}
+
+	xcb_connection_p connection = pxcb_manager.connection;
+	if(!pxcb_manager.connection)
+		LOG_ACTION(return);
+
+	pxcb_window_p drawWindow = pxcb_manager.drawWindow;
+	if(!drawWindow) LOG_ACTION(return);
+
+	xcb_window_t xDrawWindow = drawWindow->window;
+
+	if(0) {
+		LOG_START("connection: 0x%016" PRIxPTR, (uintptr_t)connection);
+		_LOG_(", drawWindow: 0x%016" PRIxPTR, (uintptr_t)drawWindow);
+		LOG_END("(0x%08x)", xDrawWindow);
+	}
+
+	PEDANTIC(assert(connection));
+	PEDANTIC(assert(drawWindow));
+	PEDANTIC(assert(xDrawWindow));
+	PEDANTIC(assert(drawWindow->background));
+	PEDANTIC(assert(drawWindow->foreground));
+	PEDANTIC(assert(drawWindow->flags.exposed));
+
+	if(!(connection && drawWindow)) return;
+
+	if(0) {
+		LOG_START("connection: 0x%016" PRIxPTR, (uintptr_t)connection);
+		_LOG_(", drawWindow: 0x%016" PRIxPTR, (uintptr_t)drawWindow);
+		LOG_END("(0x%08x)", xDrawWindow);
+	}
+
+	xcb_point_t polyLine[2] = {
+		{ .x = x1, .y = y1 },
+		{ .x = x2, .y = y2 },
+	};
+
+	XcbScalePoint(&polyLine[0], 0);
+	XcbScalePoint(&polyLine[1], 0);
+
+	switch(mode) {
+		case winErase:
+			cookie = xcb_poly_line_checked(connection,
+				XCB_COORD_MODE_ORIGIN,
+				xDrawWindow, drawWindow->background, 2, polyLine);
+			break;
+		case winPaint:
+			cookie = xcb_poly_line_checked(connection,
+				XCB_COORD_MODE_ORIGIN,
+				xDrawWindow, drawWindow->foreground, 2, polyLine);
+			break;
+		default:
+			LOG("unhandled draw mode: %u", mode);
+			break;
+	}
+
+	if((error = xcb_request_check(connection, cookie))) {
+		LOG("poly_rectangle_failed: %d", error->error_code);
+		xcb_disconnect(connection);
+		exit(-1);
+	}
+
+	xcb_flush(connection);
+}
+
 void XcbWinDrawRectangle(const RectangleType* rP, UInt16 cornerDiam, WinDrawOperation mode)
 {
 	PEDANTIC(assert(rP));

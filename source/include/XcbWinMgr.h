@@ -83,6 +83,7 @@ void XcbWin2XcbRectandle(const RectangleType *const wr, xcb_rectangle_ref xr);
 void XcbWin2XcbScaledRectangle(const RectangleType *const wr, xcb_rectangle_ref xr, xcb_point_ref scale);
 void XcbWinDeleteWindow(WinHandle winHandle, Boolean eraseIt);
 void XcbWinDrawChars(const char* chars, size_t len, const unsigned x, const unsigned y);
+void XcbWinDrawLine(int16_t x1, int16_t y1, int16_t x2, int16_t y2, WinDrawOperation mode);
 void XcbWinDrawRectangle(const RectangleType* rP, UInt16 cornerDiam, WinDrawOperation mode);
 int XcbWinEnterWindow(WinHandle const enterWindow, WinHandle const exitWindow);
 void XcbWinEraseRectangle(const RectangleType* rP, UInt16 cornerDiam);
