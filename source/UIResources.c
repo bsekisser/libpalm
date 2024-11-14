@@ -1,13 +1,15 @@
 #include "config.h"
 
-#include "xUIResources.h"
-
 /* **** */
+
+#define ALLOW_ACCESS_TO_INTERNALS_OF_FORMS
+#define ALLOW_ACCESS_TO_INTERNALS_OF_WINDOWS
 
 #include "DataMgr.h"
 #include "xForm.h"
-#include "xRect.h"
 #include "xMemoryMgr.h"
+#include "xRect.h"
+#include "xUIResources.h"
 
 /* **** */
 
@@ -28,7 +30,7 @@
 
 typedef void* (*FormResLoadFn)(const uint16_t rscID);
 
-static void _ResLoadFormObject(FormObjListTypePtr const objectP,
+static void _ResLoadFormObject(FormObjListRef objectP,
 	const FormObjectKind objectType, const uint16_t rscID, FormResLoadFn fn)
 {
 	objectP->objectType = objectType;
@@ -42,7 +44,7 @@ void* ResLoadForm(const uint16_t rscID)
 
 	if(!h2fr) return(0);
 
-	FormPtr const formP = MemPtrNewClear(sizeof(FormType));
+	FormRef formP = MemPtrNewClear(sizeof(FormType));
 	ERR_NULL(formP);
 
 	FormAttrType *const attr = &formP->attr;
@@ -77,7 +79,7 @@ void* ResLoadForm(const uint16_t rscID)
 
 	for(unsigned i = 0; i < formP->numObjects; i++)
 	{
-		FormObjListTypePtr objectP = &formP->objects[i];
+		FormObjListRef objectP = &formP->objects[i];
 
 		const uint16_t objID = uint16be(&p);
 		const uint32_t objType = uint32be(&p);
@@ -126,7 +128,7 @@ void* ResLoadFormLabel(const uint16_t rscID)
 
 	if(!h2label) LOG_ACTION(return(0));
 
-	FormLabelType *const label = MemPtrNewClear(sizeof(FormLabelType));
+	FormLabelRef label = MemPtrNewClear(sizeof(FormLabelType));
 	PEDANTIC(assert(label));
 
 	MemPtr l = MemHandleLock(h2label);

@@ -4,17 +4,25 @@
 
 /* **** */
 
-#define ALLOW_ACCESS_TO_INTERNALS_OF_FORMS
-#define ALLOW_ACCESS_TO_INTERNALS_OF_WINDOWS
-
 #include "sdk/include/Core/UI/Form.h"
 
 /* **** */
 
-typedef struct FormLabelTag* FormLabelTypePtr;
-typedef struct FormObjAttrTag* FormObjAttrTypePtr;
-typedef struct FormObjListTag* FormObjListTypePtr;
-typedef struct FormType* FormPtr;
+typedef FormEventHandlerPtr const FormEventHandlerRef;
+
+typedef struct FormLabelTag* FormLabelPtr;
+typedef FormLabelPtr const FormLabelRef;
+
+typedef struct FormObjAttrTag* FormObjAttrPtr;
+typedef FormObjAttrPtr const FormObjAttrRef;
+
+typedef struct FormObjListTag* FormObjListPtr;
+typedef FormObjListPtr const FormObjListRef;
+
+typedef FormObjectType* FormObjectPtr;
+typedef FormObjectPtr const FormObjectRef;
+
+typedef FormPtr const FormRef;
 
 /* **** */
 
@@ -22,6 +30,6 @@ extern FormPtr current_form;
 
 /* **** */
 
-void FrmDeleteLabel(FormLabelType *const label);
-void FrmDrawLabel(FormLabelType *const label);
-FormPtr FrmGetNextForm(FormPtr formP);
+void FrmDeleteLabel(FormLabelRef label);
+void FrmDrawLabel(FormLabelRef label);
+FormPtr FrmGetNextForm(FormRef formP);

@@ -6,8 +6,6 @@
 
 /* **** */
 
-#define ALLOW_ACCESS_TO_INTERNALS_OF_WINDOWS
-
 #include "sdk/include/Core/System/Window.h"
 
 #include "xEvent.h"

@@ -1,5 +1,9 @@
 #include "config.h"
 
+/* **** */
+
+#define ALLOW_ACCESS_TO_INTERNALS_OF_WINDOWS
+
 #include "xWindow.h"
 #include "sdk/include/Libraries/PalmOSGlue/WinGlue.h"
 

@@ -1,20 +1,22 @@
 #include "config.h"
 
+/* **** */
+
+#define ALLOW_ACCESS_TO_INTERNALS_OF_FORMS
+#define ALLOW_ACCESS_TO_INTERNALS_OF_WINDOWS
+
+#include "sdk/include/Core/System/SystemMgr.h"
+#include "sdk/include/Libraries/PalmOSGlue/WinGlue.h"
+
+#include "xEvent.h"
 #include "xForm.h"
+#include "xMemoryMgr.h"
+#include "xRect.h"
 #include "xWindow.h"
 
 /* **** */
 
-#include "sdk/include/Core/System/SystemMgr.h"
-#include "sdk/include/Libraries/PalmOSGlue/WinGlue.h"
-#include "xEvent.h"
-#include "xMemoryMgr.h"
-
-/* **** */
-
 #include "XcbWinMgr.h"
-
-#include "xRect.h"
 
 /* **** */
 
