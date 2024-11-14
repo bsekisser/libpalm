@@ -22,5 +22,6 @@ extern FormPtr current_form;
 
 /* **** */
 
+void FrmDeleteLabel(FormLabelType *const label);
 void FrmDrawLabel(FormLabelType *const label);
 FormPtr FrmGetNextForm(FormPtr formP);

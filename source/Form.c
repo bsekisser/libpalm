@@ -152,6 +152,9 @@ void FrmDeleteForm(FormType* formP)
 		FormObjectKind objectType = formObject->objectType;
 
 		switch(objectType) {
+			case frmLabelObj:
+				FrmDeleteLabel(formObject->object.label);
+				break;
 			default:
 				LOG_START("TODO: delete formObject: 0x%016" PRIxPTR, (uintptr_t)formObject);
 				LOG_END(", objectKind: 0x%08x", objectType);
@@ -171,6 +174,12 @@ void FrmDeleteForm(FormType* formP)
 	WinDeleteWindow(&formP->window, formP->attr.saveBehind);
 
 	TRACE_EXIT();
+}
+
+void FrmDeleteLabel(FormLabelType *const label)
+{
+	MemPtrFree(label->text);
+	MemPtrFree(label);
 }
 
 Boolean FrmDispatchEvent(EventPtr eventP)
