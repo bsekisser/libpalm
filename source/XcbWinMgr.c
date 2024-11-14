@@ -303,7 +303,7 @@ pxcb_window_p XcbCreateWindow(WinPtr const windowP, const RectangleType* windowB
 		screen->root_depth,
 		xw->window,
 		screen->root,
-		1 + scaledBounds.x, 1 + scaledBounds.y,
+		scaledBounds.x, scaledBounds.y,
 		scaledBounds.width, scaledBounds.height,
 		frameWidth,
 		XCB_WINDOW_CLASS_INPUT_OUTPUT,
